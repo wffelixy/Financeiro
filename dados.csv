@@ -1,0 +1,4 @@
+﻿id;data;cliente;telefone;modalidade;emprestado;taxa;lucro;total;parcelas;valorParcela;lucroParcela;vencimento;status
+3;23/10/2026;Felix;(11) 98404-8919;Parcelado;1000;35;350;1350;3/3;1350;350;23/01/2027;Pendente
+2;23/10/2026;Felix;(11) 98404-8919;Parcelado;1000;35;350;1350;2/3;1350;350;23/12/2026;Pendente
+1;23/10/2026;Felix;(11) 98404-8919;Parcelado;1000;35;350;1350;1/3;1350;350;23/11/2026;Pendente

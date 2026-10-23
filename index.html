@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Controle de Empréstimos e Rendimentos</title>
+<!-- Biblioteca PapaParse para leitura dinâmica de arquivos CSV -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<!-- Biblioteca Chart.js para geração dos gráficos do Dashboard -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--navy:#16345c;--blue:#2458a6;--bg:#f3f6fb;--green:#16845b;--red:#b93838;--gold:#a56b00;--purple:#6b21a8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:#172033;width:100%;min-height:100vh}
+
+.wrap{width:100%;max-width:100%;margin:0;padding:16px 24px}
+
+header{background:linear-gradient(120deg,#132b4c,#2458a6);color:white;padding:24px;border-radius:16px;margin-bottom:18px;position:relative}
+header h1{margin:0 0 8px;font-size:clamp(22px,4vw,32px)}
+header p{margin:0;opacity:.85}
+.version-badge{position:absolute;top:16px;right:20px;font-size:11px;opacity:.65;font-weight:700;letter-spacing:.5px;background:rgba(255,255,255,.12);padding:4px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.18)}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:18px}
+.card{background:white;border-radius:13px;padding:18px;box-shadow:0 3px 12px #1427440d;border:1px solid #e3e9f2}
+.label{font-size:12px;color:#637087;margin-bottom:8px;font-weight:700}
+.value{font-weight:800;font-size:clamp(20px,2.2vw,28px);overflow-wrap:anywhere}
+.green{color:var(--green)}.blue{color:var(--blue)}.gold{color:var(--gold)}
+
+/* Estilos do Dashboard / Gráficos */
+.dashboard-grid{display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:18px}
+.chart-card{background:white;border-radius:14px;padding:20px;box-shadow:0 3px 12px #1427440d;border:1px solid #e3e9f2;display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative;height:320px}
+.chart-container{position:relative;width:100%;height:100%;display:flex;justify-content:center;align-items:center}
+
+.panel{background:white;border-radius:14px;padding:20px;margin-bottom:18px;box-shadow:0 3px 12px #1427440d;width:100%}
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.tools input,.tools select, input,select{border:1px solid #d5deea;border-radius:8px;padding:10px 12px;font-size:14px;background:white}
+.tools input{flex:1;min-width:200px}
+.btn{border:0;border-radius:8px;padding:10px 14px;background:var(--blue);color:white;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn.secondary{background:#e9eef7;color:#213b62}
+.btn.danger{background:var(--red);color:white}
+.btn.whatsapp{background:var(--green)}
+
+.table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;min-width:1250px;font-size:13px}
+th{background:#edf2f9;color:#243b5d;text-align:left;position:sticky;top:0}
+td,th{padding:12px 10px;border-bottom:1px solid #e7edf5;white-space:nowrap}
+tr:hover td{background:#f8faff}
+.status{border-radius:20px;padding:5px 9px;font-weight:700;font-size:11px}
+.pending{background:#fff1cf;color:#895a00}
+.paid{background:#d9f5e7;color:#116743}
+.completed{background:#f3e8ff;color:#6b21a8}
+.late{background:#ffe1e1;color:#9c2626}
+
+.duebox{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.due{padding:14px;border-radius:10px;background:#fff6df;border:1px solid #f0dfb4}
+.due strong{display:block;margin-bottom:5px}
+.small{font-size:12px;color:#66758b}
+
+.formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.formgrid label{font-size:12px;color:#5a6678;display:flex;flex-direction:column;gap:5px}
+.formgrid input,.formgrid select{width:100%}
+.formgrid input:disabled{background:#f1f5f9;color:#94a3b8;cursor:not-allowed}
+.hidden{display:none}
+.empty{padding:20px;color:#64748b;text-align:center}
+
+@media(max-width:992px){
+  .dashboard-grid{grid-template-columns:1fr}
+}
+@media(max-width:768px){
+  .wrap{padding:12px}
+  .cards{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+  .tools{flex-direction:column;align-items:stretch}
+  .tools input{min-width:100%}
+  .duebox{grid-template-columns:1fr}
+  .version-badge{top:12px;right:12px;font-size:10px;padding:3px 6px}
+}
+@media print{
+  body{background:white}
+  .wrap{padding:0}
+  header{background:#16345c!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .tools,.no-print,#formPanel,.dashboard-grid,.version-badge{display:none!important}
+  .panel,.card{box-shadow:none;break-inside:avoid}
+  .table-wrap{overflow:visible}
+  table{min-width:0;font-size:9px}
+  td,th{padding:5px;white-space:normal}
+}
+</style></head><body><div class="wrap">
+<header>
+  <span class="version-badge">v1.0.0</span>
+  <h1>Controle de Empréstimos e Rendimentos</h1>
+  <p>Gestão de valores, lucros previstos, parcelas e vencimentos (Integrado com CSV)</p>
+</header>
+<section class="cards">
+<div class="card"><div class="label">TOTAL EMPRESTADO (SAÍDA)</div><div id="sumLoan" class="value blue">R$ 0,00</div></div>
+<div class="card"><div class="label">LUCRO PREVISTO</div><div id="sumProfit" class="value green">R$ 0,00</div></div>
+<div class="card"><div class="label">TOTAL A RECEBER (ENTRADA)</div><div id="sumTotal" class="value">R$ 0,00</div></div>
+<div class="card"><div class="label">VENCIMENTOS HOJE / ATRASADOS</div><div id="sumDue" class="value gold">0</div><div class="small">Confira a lista de lembretes abaixo</div></div>
+</section>
+
+<!-- Dashboard / Gráficos Visuais -->
+<section class="dashboard-grid">
+  <div class="chart-card">
+    <div class="label" style="align-self:flex-start; margin-bottom: 4px;">EVOLUÇÃO MENSAL (EMPRESTADO VS LUCRO)</div>
+    <div class="chart-container"><canvas id="barChart"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="label" style="align-self:flex-start; margin-bottom: 4px;">STATUS DOS PAGAMENTOS</div>
+    <div class="chart-container"><canvas id="doughnutChart"></canvas></div>
+  </div>
+</section>
+
+<section class="panel"><h2>🔔 Lembretes de recebimento</h2><p class="small">Os vencimentos são calculados pela data e pelo status. Use “Enviar WhatsApp” para abrir uma mensagem pronta para o cliente.</p><div id="dueList" class="duebox"></div></section>
+<section class="panel" id="formPanel"><h2 id="formTitle">Adicionar empréstimo</h2>
+<form id="loanForm" class="formgrid">
+<label>Data do empréstimo *<input name="data" type="date" required></label>
+<label>Nome do cliente *<input name="cliente" required placeholder="Nome completo"></label>
+<label>Telefone / contato *<input name="telefone" id="telefoneInput" required placeholder="(11) 99999-9999" maxlength="15"></label>
+<label>Modalidade<select name="modalidade" id="modalidadeSelect"><option value="Parcelado">Parcelado</option><option value="30 Dias">30 Dias</option><option value="À vista">À vista</option></select></label>
+<label>Valor emprestado (R$) *<input name="emprestado" id="emprestadoInput" type="text" placeholder="R$ 0,00" required></label>
+<label>Taxa de juros (%) *<input name="taxa" type="number" min="0" step=".01" value="35" required></label>
+<label id="parcelasLabel">Nº de parcelas (Meses) *<input name="parcelas" id="parcelasInput" type="number" min="2" step="1" value="2" required></label>
+<label>1ª Data de vencimento *<input name="vencimento" type="date" required></label>
+<label>Status<select name="status"><option value="Pendente">Pendente</option><option value="Recebido">Recebido</option><option value="Concluído">Concluído</option></select></label>
+<div style="display:flex;align-items:flex-end;gap:8px;grid-column:1/-1;margin-top:8px"><button class="btn" type="submit">Salvar empréstimo</button><button class="btn secondary" type="button" id="cancelEdit">Limpar</button></div>
+</form></section>
+<section class="panel"><div class="tools">
+<input id="search" placeholder="Buscar por cliente, telefone ou ID…">
+<select id="filterStatus">
+  <option value="Pendente" selected>Pendentes (Em aberto)</option>
+  <option value="Recebido">Recebido</option>
+  <option value="Concluído">Concluído</option>
+  <option value="">Todos os status</option>
+</select>
+<select id="filterMonth">
+  <option value="">Todos os meses</option>
+</select>
+<select id="filterYear">
+  <option value="">Todos os anos</option>
+</select>
+<select id="filterDue"><option value="">Todos os vencimentos</option><option value="overdue">Atrasados</option><option value="today">Vencem hoje</option><option value="soon">Próximos 7 dias</option></select>
+<button class="btn secondary" id="exportCsv">Exportar CSV</button>
+<button class="btn secondary" onclick="document.getElementById('csvFileInput').click()">Importar/Atualizar CSV</button>
+<input type="file" id="csvFileInput" accept=".csv" style="display:none">
+<button class="btn secondary" onclick="window.print()">Imprimir / PDF</button>
+</div>
+<div class="table-wrap"><table><thead><tr><th>ID</th><th>Data</th><th>Cliente</th><th>Contato</th><th>Modalidade</th><th>Emprestado</th><th>Juros</th><th>Lucro</th><th>Total a receber</th><th>Parcelas</th><th>Valor parcela</th><th>Lucro/parcela</th><th>Vencimento</th><th>Status</th><th class="no-print">Ações</th></tr></thead><tbody id="tbody"></tbody></table></div><div id="count" class="small" style="margin-top:12px"></div></section>
+<p class="small">Dica: Ao cadastrar empréstimos com múltiplas parcelas, as parcelas e os vencimentos dos meses/anos futuros serão gerados automaticamente.</p>
+</div>
+<script>
+const defaultData = [{"id": "1", "data": "16/10/2026", "cliente": "igor", "telefone": "(11) 99999-9999", "modalidade": "Parcelado", "emprestado": "R$ 4.000,00", "taxa": "50,0%", "lucro": "R$ 2.000,00", "total": "R$ 6.000,00", "parcelas": "1/3", "valorParcela": "R$ 2.000,00", "lucroParcela": "R$ 666,67", "vencimento": "20/10/2026", "status": "Pendente"}];
+
+const money=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(n)||0);
+const parseMoney=s=>{if(typeof s==='number')return s; if(!s)return 0;return Number(String(s).replace(/[R$\\s]/g,'').replace(/\./g,'').replace(',','.').replace('%',''))||0};
+const parseDate=s=>{if(!s)return null;if(/^\d{4}-\d\d-\d\d$/.test(s)){let [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)}let a=String(s).split('/').map(Number);if(a.length!==3)return null;return new Date(a[2],a[1]-1,a[0])};
+const dateStr=d=>d?`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`:'';
+const inputDate=s=>{let d=parseDate(s);return d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`:''};
+const day0=()=>{let d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate())};
+
+// Função de formatação de moeda R$ em tempo real
+const formatCurrency = (v) => {
+    let digits = String(v).replace(/\D/g, "");
+    if (!digits) return "";
+    let num = (Number(digits) / 100).toFixed(2);
+    let parts = num.split(".");
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return `R$ ${parts.join(",")}`;
+};
+
+const emprestadoInput = document.getElementById('emprestadoInput');
+emprestadoInput.addEventListener('input', (e) => {
+    e.target.value = formatCurrency(e.target.value);
+});
+
+// Função de formatação de telefone
+const formatPhone = (v) => {
+    v = v.replace(/\D/g, "");
+    if (v.length > 11) v = v.substring(0, 11);
+    if (v.length > 10) {
+        return v.replace(/^(\d{2})(\d{5})(\d{4}).*/, "($1) $2-$3");
+    } else if (v.length > 5) {
+        return v.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, "($1) $2-$3");
+    } else if (v.length > 2) {
+        return v.replace(/^(\d{2})(\d{0,5})/, "($1) $2");
+    } else if (v.length > 0) {
+        return v.replace(/^(\d*)/, "($1");
+    }
+    return v;
+};
+
+const telefoneInput = document.getElementById('telefoneInput');
+telefoneInput.addEventListener('input', (e) => {
+    e.target.value = formatPhone(e.target.value);
+});
+
+let loans = [];
+let barChartInstance = null;
+let doughnutChartInstance = null;
+
+const modalidadeSelect = document.getElementById('modalidadeSelect');
+const parcelasInput = document.getElementById('parcelasInput');
+const parcelasLabel = document.getElementById('parcelasLabel');
+
+function updateParcelasField() {
+    const val = modalidadeSelect.value;
+    if(val === 'Parcelado') {
+        parcelasInput.disabled = false;
+        parcelasInput.required = true;
+        parcelasInput.min = "2";
+        if(Number(parcelasInput.value) < 2) parcelasInput.value = "2";
+        parcelasLabel.innerHTML = 'Nº de parcelas (Meses) *<input name="parcelas" id="parcelasInput" type="number" min="2" step="1" value="' + parcelasInput.value + '" required>';
+    } else {
+        parcelasInput.disabled = true;
+        parcelasInput.required = false;
+        parcelasInput.value = "1";
+        parcelasLabel.innerHTML = 'Nº de parcelas (Meses)<input name="parcelas" id="parcelasInput" type="number" value="1" disabled>';
+    }
+}
+
+modalidadeSelect.addEventListener('change', updateParcelasField);
+
+function processRawData(raw) {
+    return raw.map(x=>({
+        ...x,
+        telefone: formatPhone(String(x.telefone || '')),
+        emprestado: parseMoney(x.emprestado),
+        taxa: parseMoney(x.taxa),
+        lucro: parseMoney(x.lucro),
+        total: parseMoney(x.total),
+        parcelas: String(x.parcelas||'1'),
+        valorParcela: parseMoney(x.valorParcela),
+        lucroParcela: parseMoney(x.lucroParcela),
+        status: x.status && x.status.trim() !== '' ? x.status.trim() : 'Pendente'
+    }));
+}
+
+function updateFilterDropdowns() {
+    const monthSelect = document.getElementById('filterMonth');
+    const yearSelect = document.getElementById('filterYear');
+    
+    const currentMonth = monthSelect.value;
+    const currentYear = yearSelect.value;
+
+    const monthsMap = [
+        {val: '01', name: 'Janeiro'}, {val: '02', name: 'Fevereiro'}, {val: '03', name: 'Março'},
+        {val: '04', name: 'Abril'}, {val: '05', name: 'Maio'}, {val: '06', name: 'Junho'},
+        {val: '07', name: 'Julho'}, {val: '08', name: 'Agosto'}, {val: '09', name: 'Setembro'},
+        {val: '10', name: 'Outubro'}, {val: '11', name: 'Novembro'}, {val: '12', name: 'Dezembro'}
+    ];
+
+    let availableYears = new Set();
+    loans.forEach(x => {
+        let d = parseDate(x.vencimento);
+        if(d) availableYears.add(d.getFullYear());
+    });
+    
+    let sortedYears = Array.from(availableYears).sort((a,b)=>b-a);
+    if(sortedYears.length === 0) {
+        sortedYears.push(new Date().getFullYear());
+    }
+
+    yearSelect.innerHTML = '<option value="">Todos os anos</option>' + 
+        sortedYears.map(y => `<option value="${y}">${y}</option>`).join('');
+    
+    monthSelect.innerHTML = '<option value="">Todos os meses</option>' + 
+        monthsMap.map(m => `<option value="${m.val}">${m.name}</option>`).join('');
+
+    if(monthSelect.querySelector(`option[value="${currentMonth}"]`)) monthSelect.value = currentMonth;
+    if(yearSelect.querySelector(`option[value="${currentYear}"]`)) yearSelect.value = currentYear;
+}
+
+function loadData() {
+    try {
+        const saved = localStorage.getItem('vialeLoansHTML');
+        if(saved) {
+            loans = JSON.parse(saved);
+            updateFilterDropdowns();
+            render();
+            return;
+        }
+    } catch(e){}
+    
+    Papa.parse("dados.csv", {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+            if(results.data && results.data.length > 0) {
+                loans = processRawData(results.data);
+                save();
+                updateFilterDropdowns();
+                render();
+            } else {
+                loans = processRawData(defaultData);
+                updateFilterDropdowns();
+                render();
+            }
+        },
+        error: function() {
+            loans = processRawData(defaultData);
+            updateFilterDropdowns();
+            render();
+        }
+    });
+}
+
+let editing=null;
+function save(){
+    localStorage.setItem('vialeLoansHTML',JSON.stringify(loans));
+    updateFilterDropdowns();
+}
+
+function statusClass(x){
+    if(x.status==='Recebido')return 'paid';
+    if(x.status==='Concluído')return 'completed';
+    let d=parseDate(x.vencimento),t=day0();
+    if(d&&d<t)return 'late';
+    return 'pending';
+}
+
+function filtered(){
+    let q=document.getElementById('search').value.toLowerCase();
+    let st=document.getElementById('filterStatus').value;
+    let fm=document.getElementById('filterMonth').value;
+    let fy=document.getElementById('filterYear').value;
+    let fd=document.getElementById('filterDue').value;
+    let t=day0();
+
+    return loans.filter(x=>{
+        let d=parseDate(x.vencimento);
+        let matchSearch = !q || [x.id,x.cliente,x.telefone].join(' ').toLowerCase().includes(q);
+        let matchStatus = !st || x.status === st;
+        let matchMonth = !fm || (d && String(d.getMonth()+1).padStart(2,'0') === fm);
+        let matchYear = !fy || (d && String(d.getFullYear()) === fy);
+        let matchDue = !fd || (x.status==='Pendente'&&d&&(fd==='overdue'?d<t:fd==='today'?d.getTime()===t.getTime():d>=t&&d<=new Date(t.getFullYear(),t.getMonth(),t.getDate()+7)));
+        return matchSearch && matchStatus && matchMonth && matchYear && matchDue;
+    });
+}
+
+function updateCharts(dataList) {
+    const monthlyData = {};
+    const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+    dataList.forEach(x => {
+        let d = parseDate(x.vencimento);
+        if(d) {
+            let key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+            let label = `${monthNames[d.getMonth()]}/${d.getFullYear()}`;
+            if(!monthlyData[key]) {
+                monthlyData[key] = { label: label, emprestado: 0, lucro: 0, sortKey: key };
+            }
+            monthlyData[key].emprestado += x.emprestado;
+            monthlyData[key].lucro += x.lucro;
+        }
+    });
+
+    let sortedMonths = Object.values(monthlyData).sort((a,b)=>a.sortKey.localeCompare(b.sortKey));
+
+    let barLabels = sortedMonths.map(m => m.label);
+    let barEmprestado = sortedMonths.map(m => m.emprestado);
+    let barLucro = sortedMonths.map(m => m.lucro);
+
+    if(barLabels.length === 0) {
+        barLabels = ['Nenhum registro'];
+        barEmprestado = [0];
+        barLucro = [0];
+    }
+
+    let countPendente = 0;
+    let countRecebido = 0;
+    let countConcluido = 0;
+    let countAtrasado = 0;
+    let today = day0();
+
+    dataList.forEach(x => {
+        let st = x.status;
+        let d = parseDate(x.vencimento);
+        let isLate = (st === 'Pendente' && d && d < today);
+
+        if(isLate) countAtrasado++;
+        else if(st === 'Pendente') countPendente++;
+        else if(st === 'Recebido') countRecebido++;
+        else if(st === 'Concluído') countConcluido++;
+    });
+
+    const ctxBar = document.getElementById('barChart').getContext('2d');
+    if(barChartInstance) {
+        barChartInstance.data.labels = barLabels;
+        barChartInstance.data.datasets[0].data = barEmprestado;
+        barChartInstance.data.datasets[1].data = barLucro;
+        barChartInstance.update();
+    } else {
+        barChartInstance = new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: barLabels,
+                datasets: [
+                    { label: 'Emprestado (R$)', data: barEmprestado, backgroundColor: '#2458a6', borderRadius: 6 },
+                    { label: 'Lucro (R$)', data: barLucro, backgroundColor: '#16845b', borderRadius: 6 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+                scales: { y: { beginAtZero: true, grid: { color: '#edf2f9' } }, x: { grid: { display: false } } }
+            }
+        });
+    }
+
+    const ctxDoughnut = document.getElementById('doughnutChart').getContext('2d');
+    const doughnutData = [countPendente, countRecebido, countConcluido, countAtrasado];
+    
+    if(doughnutChartInstance) {
+        doughnutChartInstance.data.datasets[0].data = doughnutData;
+        doughnutChartInstance.update();
+    } else {
+        doughnutChartInstance = new Chart(ctxDoughnut, {
+            type: 'doughnut',
+            data: {
+                labels: ['Pendente', 'Recebido', 'Concluído', 'Atrasado'],
+                datasets: [{
+                    data: doughnutData,
+                    backgroundColor: ['#eab308', '#16845b', '#6b21a8', '#b93838'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+                cutout: '65%'
+            }
+        });
+    }
+}
+
+function render(){
+    let active=loans;
+    document.getElementById('sumLoan').textContent=money(active.reduce((a,x)=>a+x.emprestado,0));
+    document.getElementById('sumProfit').textContent=money(active.reduce((a,x)=>a+x.lucro,0));
+    document.getElementById('sumTotal').textContent=money(active.reduce((a,x)=>a+x.total,0));
+    let today=day0(),due=active.filter(x=>x.status==='Pendente'&&parseDate(x.vencimento)&&parseDate(x.vencimento)<=today).length;
+    document.getElementById('sumDue').textContent=due;
+
+    let reminders=active.filter(x=>x.status==='Pendente'&&parseDate(x.vencimento)).sort((a,b)=>parseDate(a.vencimento)-parseDate(b.vencimento)).filter(x=>parseDate(x.vencimento)<=new Date(today.getFullYear(),today.getMonth(),today.getDate()+7)).slice(0,12);
+    document.getElementById('dueList').innerHTML=reminders.length?reminders.map(x=>{let d=parseDate(x.vencimento),label=d<today?'ATRASADO':d.getTime()===today.getTime()?'VENCE HOJE':'Próximo';return `<div class="due"><strong>${label} · ${esc(x.cliente)}</strong><div>${dateStr(d)} · ${money(x.valorParcela||x.total)}</div><div class="small">ID ${esc(x.id)} · Parc. ${esc(x.parcelas)} · ${esc(x.status)}</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="btn whatsapp" style="padding:7px 10px" onclick="sendWhatsApp('${x.id}')">Enviar WhatsApp</button><button class="btn" style="padding:7px 10px" onclick="markCompleted('${x.id}')">Concluir</button></div></div>`}).join(''):'<div class="due">Nenhum vencimento pendente nos próximos 7 dias.</div>';
+    
+    let data=filtered();
+    document.getElementById('tbody').innerHTML=data.map(x=>`<tr><td>${esc(x.id)}</td><td>${esc(x.data)}</td><td><b>${esc(x.cliente)}</b></td><td>${esc(x.telefone||'—')}</td><td>${esc(x.modalidade)}</td><td>${money(x.emprestado)}</td><td>${Number(x.taxa).toLocaleString('pt-BR')}%</td><td class="green">${money(x.lucro)}</td><td><b>${money(x.total)}</b></td><td>${esc(x.parcelas)}</td><td>${money(x.valorParcela)}</td><td>${money(x.lucroParcela)}</td><td>${esc(x.vencimento)}</td><td><span class="status ${statusClass(x)}">${statusClass(x)==='late'?'Atrasado':esc(x.status)}</span></td><td class="no-print"><button class="btn secondary" onclick="editLoan('${x.id}')">Editar</button> <button class="btn whatsapp" onclick="sendWhatsApp('${x.id}')">WhatsApp</button> <button class="btn" onclick="toggleStatus('${x.id}')">Mudar Status</button> <button class="btn danger" onclick="deleteLoan('${x.id}')">Excluir</button></td></tr>`).join('')||'<tr><td colspan="15" class="empty">Nenhum registro encontrado.</td></tr>';
+    document.getElementById('count').textContent=`Exibindo ${data.length} de ${loans.length} parcelas/empréstimos.`;
+
+    updateCharts(data);
+}
+
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+function toggleStatus(id){
+    let x=loans.find(x=>String(x.id)===String(id));
+    if(x){
+        if(x.status==='Pendente') x.status='Recebido';
+        else if(x.status==='Recebido') x.status='Concluído';
+        else x.status='Pendente';
+        save();
+        render();
+    }
+}
+
+function markCompleted(id){
+    let x=loans.find(x=>String(x.id)===String(id));
+    if(x){
+        x.status='Concluído';
+        save();
+        render();
+    }
+}
+
+function deleteLoan(id){
+    if(confirm('Tem certeza que deseja excluir esta parcela/empréstimo?')){
+        loans = loans.filter(x => String(x.id) !== String(id));
+        save();
+        render();
+    }
+}
+
+function sendWhatsApp(id){
+    const x=loans.find(a=>String(a.id)===String(id));
+    if(!x)return;
+    const phone=String(x.telefone||'').replace(/\D/g,'');
+    if(!phone){alert('Este empréstimo não tem telefone cadastrado.');editLoan(id);return}
+    
+    const d=parseDate(x.vencimento);
+    const due=d?dateStr(d):'data a confirmar';
+    const amount=money(x.valorParcela||x.total);
+    
+    const msg = `📢 *LEMBRETE DE PAGAMENTO*\nOlá, ${x.cliente||'tudo bem'}! Hoje vence a parcela do seu empréstimo (${due}) no valor de ${amount}. Entre em contato para realizar o pagamento e manter sua parcela em dia. Evite multas, juros e atrasos.\n\nAgradecemos pela atenção!`;
+    
+    const normalized=phone.startsWith('55')?phone:'55'+phone;
+    window.open('https://wa.me/'+normalized+'?text='+encodeURIComponent(msg),'_blank','noopener');
+}
+
+function editLoan(id){
+    let x=loans.find(x=>String(x.id)===String(id));
+    if(!x)return;
+    editing=id;
+    let f=document.getElementById('loanForm');
+    for(let k of ['data','cliente','telefone','modalidade','vencimento','status']) {
+        f.elements[k].value = k==='data'?inputDate(x[k]):k==='vencimento'?inputDate(x[k]):x[k]??'';
+    }
+    f.elements.emprestado.value = formatCurrency(x.emprestado * 100);
+    f.elements.taxa.value = x.taxa;
+    
+    updateParcelasField();
+    if(x.modalidade === 'Parcelado') {
+        let pVal = String(x.parcelas||'').split('/')[1] || String(x.parcelas||'1');
+        f.elements.parcelas.value = Math.max(2, Number(pVal)||2);
+    }
+    
+    document.getElementById('formTitle').textContent='Editar parcela ID '+id;
+    window.scrollTo({top:document.getElementById('formPanel').offsetTop,behavior:'smooth'});
+}
+
+document.getElementById('loanForm').addEventListener('submit',e=>{
+    e.preventDefault();
+    let f=e.target, d=new FormData(f);
+    let modalidade = d.get('modalidade');
+    let principal = parseMoney(d.get('emprestado'));
+    let taxa = Number(d.get('taxa'))||0;
+    
+    if(principal <= 0) {
+        alert('Por favor, informe um valor emprestado válido.');
+        return;
+    }
+
+    let n = modalidade === 'Parcelado' ? Math.max(2, Number(d.get('parcelas'))||2) : 1;
+    let lucro = principal * taxa / 100;
+    let total = principal + lucro;
+    let baseDate = parseDate(d.get('vencimento'));
+    let startDate = parseDate(d.get('data'));
+    let telFormatted = formatPhone(d.get('telefone'));
+
+    if(editing){
+        let obj={id:editing, data:dateStr(startDate), cliente:d.get('cliente'), telefone:telFormatted, modalidade:modalidade, emprestado:principal, taxa, lucro, total, parcelas:'1/1', valorParcela:total, lucroParcela:lucro, vencimento:dateStr(baseDate), status:d.get('status')};
+        loans=loans.map(x=>String(x.id)===String(editing)?obj:x);
+    } else {
+        let baseId = Math.max(0, ...loans.map(x=>Number(x.id)||0));
+        let valorParcela = total / n;
+        let lucroParcela = lucro / n;
+
+        for(let i=0; i<n; i++){
+            let dueDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + i, baseDate.getDate());
+            baseId++;
+            let obj={
+                id: String(baseId),
+                data: dateStr(startDate),
+                cliente: d.get('cliente'),
+                telefone: telFormatted,
+                modalidade: modalidade,
+                emprestado: principal / n,
+                taxa: taxa,
+                lucro: lucroParcela,
+                total: valorParcela,
+                parcelas: `${i+1}/${n}`,
+                valorParcela: valorParcela,
+                lucroParcela: lucroParcela,
+                vencimento: dateStr(dueDate),
+                status: d.get('status')
+            };
+            loans.unshift(obj);
+        }
+    }
+
+    editing=null;
+    save();
+    f.reset();
+    updateParcelasField();
+    document.getElementById('formTitle').textContent='Adicionar empréstimo';
+    render();
+});
+
+document.getElementById('cancelEdit').onclick=()=>{
+    editing=null;
+    document.getElementById('loanForm').reset();
+    updateParcelasField();
+    document.getElementById('formTitle').textContent='Adicionar empréstimo';
+};
+
+['search','filterStatus','filterMonth','filterYear','filterDue'].forEach(id=>document.getElementById(id).addEventListener(id==='search'?'input':'change',render));
+
+document.getElementById('exportCsv').onclick=()=>{
+    let cols=['id','data','cliente','telefone','modalidade','emprestado','taxa','lucro','total','parcelas','valorParcela','lucroParcela','vencimento','status'];
+    let csv=[cols.join(';'),...loans.map(x=>cols.map(k=>String(x[k]??'').replace(/;/g,',')).join(';'))].join('\r\n');
+    let a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'}));a.download='dados.csv';a.click();URL.revokeObjectURL(a.href);
+};
+
+document.getElementById('csvFileInput').addEventListener('change', function(e) {
+    let file = e.target.files[0];
+    if(!file) return;
+    Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+            if(results.data && results.data.length > 0) {
+                loans = processRawData(results.data);
+                save();
+                updateFilterDropdowns();
+                render();
+                alert('Dados atualizados com sucesso através do arquivo CSV!');
+            }
+        }
+    });
+});
+
+updateParcelasField();
+loadData();
+</script></body></html>
