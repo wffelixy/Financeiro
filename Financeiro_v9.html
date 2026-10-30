@@ -1,0 +1,2613 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WM Cash Control | Gestão Financeira Pessoal (Java Dev)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#035485',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                            950: '#082f49'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS (XLSX) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
+        ::-webkit-scrollbar-thumb { background: rgba(100,116,139,0.3); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(100,116,139,0.5); }
+        .tab-btn.active {
+            border-bottom: 3px solid #0284c7;
+            color: #0284c7;
+            font-weight: 600;
+        }
+
+        /* Responsividade da aplicação */
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { width: 100%; max-width: 100%; margin: 0; }
+        body { overflow-x: hidden; }
+        main, main > section, #content-dashboard, #content-table, #content-diagnosis, #content-planner {
+            min-width: 0;
+            max-width: 100%;
+        }
+        canvas { max-width: 100%; }
+        button, input, select, textarea { max-width: 100%; }
+        .modal-scroll {
+            max-height: calc(100vh - 2rem);
+            max-height: calc(100dvh - 2rem);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+        #content-table .table-scroll {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+            overflow-y: visible;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-x: contain;
+        }
+        #content-table .table-scroll table {
+            width: 100%;
+            min-width: 1280px;
+        }
+        #content-table .table-scroll th,
+        #content-table .table-scroll td {
+            white-space: nowrap;
+        }
+        #content-table .table-scroll th:first-child,
+        #content-table .table-scroll td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 2;
+            background-color: #1e293b;
+        }
+        #content-table .table-scroll thead th:first-child,
+        #content-table .table-scroll tfoot td:first-child {
+            background-color: #0f172a;
+            z-index: 3;
+        }
+        @media (min-width: 1280px) {
+            #content-table .table-scroll table { min-width: 0; }
+        }
+        @media (max-width: 767px) {
+            header > div {
+                height: auto !important;
+                min-height: 4rem;
+                padding-top: .65rem;
+                padding-bottom: .65rem;
+                flex-wrap: wrap;
+                align-items: flex-start;
+                gap: .75rem;
+            }
+            header > div > div:first-child { min-width: 0; }
+            header > div > div:last-child {
+                width: 100%;
+                min-width: 0;
+                flex-wrap: wrap;
+                justify-content: flex-start;
+                gap: .5rem;
+            }
+            header > div > div:last-child > div { min-width: 0; }
+            header button, header label { min-height: 2.25rem; }
+            main { padding-left: .65rem !important; padding-right: .65rem !important; }
+            #content-table > div:first-child { align-items: stretch; }
+            #content-table > div:first-child > div:last-child {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+            #content-table > div:first-child button {
+                flex: 1 1 100%;
+                justify-content: center;
+            }
+            #content-dashboard h3, #content-diagnosis h3, #content-planner h3 {
+                overflow-wrap: anywhere;
+            }
+            .text-2xl { overflow-wrap: anywhere; }
+            #modalAccount > div, #modalManageAccounts > div, #modalReceitas > div {
+                padding: 1rem;
+                width: calc(100vw - 1rem);
+                max-width: calc(100vw - 1rem);
+            }
+            #content-table .table-scroll table { min-width: 1280px; }
+        }
+        @media (max-width: 420px) {
+            header h1 { font-size: 1rem; }
+            header > div > div:last-child > button { flex: 1 1 auto; }
+            #content-table .table-scroll th,
+            #content-table .table-scroll td { padding: .55rem .45rem; }
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-full flex flex-col antialiased">
+
+    <!-- CABEÇALHO DA APLICAÇÃO -->
+    <header class="bg-slate-800/90 backdrop-blur border-b border-slate-700/80 sticky top-0 z-50">
+        <div class="w-full mx-auto px-3 sm:px-5 lg:px-6 min-h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <!-- Logo Wellington Felix Martins (Java Dev & Finanças) -->
+                <div class="w-11 h-11 shrink-0 rounded-2xl overflow-hidden shadow-lg shadow-sky-500/20 bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-900 border border-slate-700/80 p-1 flex items-center justify-center hover:scale-105 transition duration-200">
+                    <svg viewBox="0 0 100 100" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="wfmBrandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#38bdf8"/>
+                                <stop offset="50%" stop-color="#2dd4bf"/>
+                                <stop offset="100%" stop-color="#10b981"/>
+                            </linearGradient>
+                            <linearGradient id="wfmJavaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#f59e0b"/>
+                                <stop offset="100%" stop-color="#ef4444"/>
+                            </linearGradient>
+                            <filter id="wfmGlow" x="-20%" y="-20%" width="140%" height="140%">
+                                <feGaussianBlur stdDeviation="2.5" result="blur" />
+                                <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                            </filter>
+                        </defs>
+                        <!-- Circuito sutil de fundo (Tecnologia / Dados) -->
+                        <circle cx="50" cy="50" r="39" fill="none" stroke="#38bdf8" stroke-width="1" stroke-dasharray="3,5" opacity="0.3"/>
+                        
+                        <!-- Left Bracket < (Código / Tech) -->
+                        <path d="M 27 37 L 17 51 L 27 65" fill="none" stroke="#38bdf8" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+                        
+                        <!-- Right Bracket > (Código / Tech) -->
+                        <path d="M 73 37 L 83 51 L 73 65" fill="none" stroke="#10b981" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+                        
+                        <!-- Monograma W (Wellington) com subida financeira -->
+                        <path d="M 32 39 L 41 67 L 50 49 L 59 67 L 68 39" 
+                              fill="none" 
+                              stroke="url(#wfmBrandGrad)" 
+                              stroke-width="5.5" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round"
+                              filter="url(#wfmGlow)"/>
+                        
+                        <!-- Chama / Vapor do Café Java no topo do W -->
+                        <path d="M 46 30 C 44 26, 52 24, 50 19 C 49 17, 47 16, 48 14" 
+                              fill="none" 
+                              stroke="url(#wfmJavaGrad)" 
+                              stroke-width="2.8" 
+                              stroke-linecap="round"/>
+                        <path d="M 53 31 C 51 27, 57 25, 55 21" 
+                              fill="none" 
+                              stroke="url(#wfmJavaGrad)" 
+                              stroke-width="2.2" 
+                              stroke-linecap="round" 
+                              opacity="0.8"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                        <span>WM Cash Control</span>
+                        <span class="text-[11px] font-semibold px-2 py-0.5 bg-slate-800 text-amber-400 border border-amber-500/40 rounded-full flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-brands fa-java text-amber-400 text-xs"></i> Java Dev
+                        </span>
+                    </h1>
+                    <p class="text-xs text-slate-400 hidden sm:block">Sistema de Gestão Financeira &amp; Engenharia de Custos</p>
+                </div>
+            </div>
+
+            <!-- ANOS E IMPORTAÇÃO/EXPORTAÇÃO -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div class="flex items-center bg-slate-900/80 border border-slate-700 rounded-lg p-1">
+                    <label for="yearSelect" class="text-xs text-slate-400 px-1.5 font-medium flex items-center gap-1">
+                        <i class="fa-regular fa-calendar"></i> Ano:
+                    </label>
+                    <select id="yearSelect" onchange="changeYear(this.value)" class="bg-slate-800 text-brand-400 font-bold text-sm rounded border border-slate-600 px-2 py-1 focus:outline-none focus:border-brand-500 cursor-pointer">
+                        <!-- Preenchido dinamicamente -->
+                    </select>
+                    <button onclick="addNewYearPrompt()" class="ml-1 text-slate-400 hover:text-brand-400 p-1 rounded hover:bg-slate-700 transition" title="Adicionar Novo Ano">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-1.5">
+                    <button onclick="openExportModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 transition shadow-sm" title="Exportar Backup e Planilhas">
+                        <i class="fa-solid fa-file-export text-sm"></i>
+                        <span class="hidden md:inline">Exportar / Backup</span>
+                    </button>
+                    <label class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 transition cursor-pointer shadow-sm" title="Importar arquivos (Excel, CSV ou JSON)">
+                        <i class="fa-solid fa-file-import text-sm text-brand-400"></i>
+                        <span class="hidden md:inline">Importar Dados</span>
+                        <input type="file" id="dataImport" accept=".xlsx, .xls, .csv, .json" multiple onchange="importDataFiles(event)" class="hidden">
+                    </label>
+                    <button onclick="openManualModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 transition shadow-sm" title="Guia com prints explicativos de cada menu">
+                        <i class="fa-solid fa-book-open text-sm"></i>
+                        <span class="hidden md:inline">Manual do Sistema</span>
+                    </button>
+                    <button onclick="resetToDefaultData()" class="text-xs text-slate-400 hover:text-rose-400 p-2 rounded-lg hover:bg-slate-800 transition" title="Restaurar dados originais de 2026">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- NAVEGAÇÃO PRINCIPAL -->
+    <main class="w-full max-w-none mx-auto px-3 sm:px-5 lg:px-6 py-4 sm:py-6 flex-1 flex flex-col gap-4 sm:gap-6 min-w-0">
+
+        <div class="border-b border-slate-700 flex items-center overflow-x-auto no-scrollbar gap-2 sm:gap-6 text-sm text-slate-400 font-medium">
+            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn active pb-3 px-1 flex items-center gap-2 whitespace-nowrap transition-colors">
+                <i class="fa-solid fa-gauge-high"></i> Dashboard Executivo
+            </button>
+            <button onclick="switchTab('table')" id="tab-table" class="tab-btn pb-3 px-1 flex items-center gap-2 whitespace-nowrap transition-colors">
+                <i class="fa-solid fa-table-cells"></i> Matriz Mensal
+            </button>
+            <button onclick="switchTab('diagnosis')" id="tab-diagnosis" class="tab-btn pb-3 px-1 flex items-center gap-2 whitespace-nowrap transition-colors relative">
+                <i class="fa-solid fa-magnifying-glass-chart text-amber-400"></i> Onde Estou Errando?
+                <span id="badgeDiagnosis" class="hidden absolute -top-1 -right-2 bg-rose-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">!</span>
+            </button>
+            <button onclick="switchTab('planner')" id="tab-planner" class="tab-btn pb-3 px-1 flex items-center gap-2 whitespace-nowrap transition-colors">
+                <i class="fa-solid fa-piggy-bank text-emerald-400"></i> Plano & Reserva de Emergência
+            </button>
+            <button onclick="openManualModal()" class="ml-auto text-xs text-sky-400 hover:text-sky-300 font-semibold flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-sky-950/40 border border-sky-500/30 transition shrink-0" title="Guia com prints explicativos dos menus">
+                <i class="fa-solid fa-circle-question"></i>
+                <span class="hidden sm:inline">Manual de Uso</span>
+            </button>
+        </div>
+
+        <!-- CONTEÚDO DAS ABAS -->
+
+        <!-- 1. DASHBOARD COMPLETO -->
+        <section id="content-dashboard" class="space-y-6">
+            <!-- CARDS KPI PRINCIPAIS -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-4 flex flex-col justify-between shadow-sm relative overflow-hidden">
+                    <div class="absolute right-3 top-3 bg-emerald-500/10 p-2.5 rounded-lg text-emerald-400">
+                        <i class="fa-solid fa-wallet text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-medium text-slate-400">Receita Total Ano</span>
+                        <h3 id="kpiReceita" class="text-2xl font-bold text-slate-100 mt-1">R$ 0,00</h3>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-3 flex items-center gap-1">
+                        Média mensal: <span class="text-slate-200 font-semibold" id="kpiReceitaMedia">R$ 0,00</span>
+                    </p>
+                </div>
+
+                <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-4 flex flex-col justify-between shadow-sm relative overflow-hidden">
+                    <div class="absolute right-3 top-3 bg-rose-500/10 p-2.5 rounded-lg text-rose-400">
+                        <i class="fa-solid fa-arrow-trend-down text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-medium text-slate-400">Despesa Total Ano</span>
+                        <h3 id="kpiDespesa" class="text-2xl font-bold text-rose-400 mt-1">R$ 0,00</h3>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-3 flex items-center gap-1">
+                        Média mensal: <span class="text-slate-200 font-semibold" id="kpiDespesaMedia">R$ 0,00</span>
+                    </p>
+                </div>
+
+                <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-4 flex flex-col justify-between shadow-sm relative overflow-hidden">
+                    <div class="absolute right-3 top-3 bg-brand-500/10 p-2.5 rounded-lg text-brand-400">
+                        <i class="fa-solid fa-piggy-bank text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-medium text-slate-400">Sobra Acumulada</span>
+                        <h3 id="kpiSobra" class="text-2xl font-bold text-emerald-400 mt-1">R$ 0,00</h3>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-3">
+                        Taxa de Poupança: <span id="kpiSobraTaxa" class="font-bold text-emerald-400">0%</span>
+                    </p>
+                </div>
+
+                <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-4 flex flex-col justify-between shadow-sm relative overflow-hidden">
+                    <div class="absolute right-3 top-3 bg-amber-500/10 p-2.5 rounded-lg text-amber-400">
+                        <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-medium text-slate-400">% Renda Comprometida</span>
+                        <h3 id="kpiComprometimento" class="text-2xl font-bold text-amber-400 mt-1">0%</h3>
+                    </div>
+                    <div class="w-full bg-slate-700 h-2 rounded-full mt-3 overflow-hidden">
+                        <div id="kpiComprometimentoBar" class="bg-amber-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ALERTAS RÁPIDOS -->
+            <div id="quickAlertsContainer" class="space-y-2"></div>
+
+            <!-- CONTAS A VENCER / VENCIDAS NO MÊS SELECIONADO -->
+            <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-4 shadow-sm">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4 border-b border-slate-700/60 pb-3">
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-calendar-days text-brand-400 text-lg"></i>
+                            <h3 class="text-base font-semibold text-slate-100">Contas Pendentes e Vencidas do Mês</h3>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-xs">
+                            <span id="badgeCountVencidas" class="px-2 py-0.5 text-[11px] font-bold rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/30">0 Vencidas</span>
+                            <span id="badgeCountAVencer" class="px-2 py-0.5 text-[11px] font-bold rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/30">0 A Vencer</span>
+                            <span id="badgeCountPagas" class="px-2 py-0.5 text-[11px] font-bold rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">0 Pagas</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-700">
+                        <label for="dashboardMonthFilter" class="text-xs font-medium text-slate-400 flex items-center gap-1">
+                            <i class="fa-solid fa-filter text-brand-400"></i> Mês:
+                        </label>
+                        <select id="dashboardMonthFilter" onchange="renderCurrentMonthDueList()" class="bg-slate-800 text-slate-200 text-xs font-semibold rounded px-2 py-0.5 border border-slate-600 focus:outline-none focus:border-brand-500 cursor-pointer">
+                            <option value="0">Janeiro</option>
+                            <option value="1">Fevereiro</option>
+                            <option value="2">Março</option>
+                            <option value="3">Abril</option>
+                            <option value="4">Maio</option>
+                            <option value="5">Junho</option>
+                            <option value="6">Julho</option>
+                            <option value="7">Agosto</option>
+                            <option value="8">Setembro</option>
+                            <option value="9">Outubro</option>
+                            <option value="10">Novembro</option>
+                            <option value="11">Dezembro</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- CARDS GRID VIEW DE CONTAS -->
+                <div id="currentMonthDueList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <!-- Cards preenchidos dinamicamente -->
+                </div>
+            </div>
+
+            <!-- PAINEL DE TRÊS GRÁFICOS -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Gráfico 1: Evolução Mensal -->
+                <div class="lg:col-span-2 bg-slate-800/70 border border-slate-700/80 rounded-xl p-5 shadow-sm">
+                    <h3 class="text-base font-semibold text-slate-100 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-area text-brand-400"></i> Evolução Mensal (Receita vs Despesa vs Sobra)
+                    </h3>
+                    <div class="h-72 w-full relative">
+                        <canvas id="chartEvolucao"></canvas>
+                    </div>
+                </div>
+
+                <!-- Gráfico 2: Categorias Donut -->
+                <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-5 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-base font-semibold text-slate-100 mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-pie text-purple-400"></i> Gastos por Categoria
+                        </h3>
+                        <div class="h-52 w-full relative flex items-center justify-center">
+                            <canvas id="chartCategorias"></canvas>
+                        </div>
+                    </div>
+                    <div id="chartCategoriasLegend" class="mt-4 text-xs space-y-1.5 border-t border-slate-700 pt-3"></div>
+                </div>
+
+                <!-- Gráfico 3: Projeção Multi-Anual -->
+                <div class="lg:col-span-3 bg-slate-800/70 border border-slate-700/80 rounded-xl p-5 shadow-sm">
+                    <h3 class="text-base font-semibold text-slate-100 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-bar text-emerald-400"></i> Comparativo Histórico & Futuro (Evolução Ano a Ano)
+                    </h3>
+                    <div class="h-64 w-full relative">
+                        <canvas id="chartMultiYear"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. MATRIZ MENSAL -->
+        <section id="content-table" class="hidden space-y-6">
+            <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-4 flex flex-col sm:flex-row gap-3 items-center justify-between">
+                <div class="flex items-center gap-2 text-sm text-slate-300 font-medium">
+                    <i class="fa-solid fa-pen-to-square text-brand-400"></i>
+                    <span>Editando Ano: <strong id="tableYearDisplay" class="text-white text-base">2026</strong></span>
+                    <span class="text-xs text-slate-400 font-normal hidden md:inline ml-2">(Clique e edite qualquer valor nas células)</span>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button onclick="editReceitasModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3.5 py-2 rounded-lg flex items-center gap-2 transition">
+                        <i class="fa-solid fa-money-bill-wave"></i> Receitas Fixas/Variáveis
+                    </button>
+                    <button onclick="openManageAccountsModal()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold px-3.5 py-2 rounded-lg flex items-center gap-2 transition">
+                        <i class="fa-solid fa-list-check"></i> Gerenciar Contas
+                    </button>
+                    <button onclick="openAddAccountModal()" class="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-3.5 py-2 rounded-lg flex items-center gap-2 transition">
+                        <i class="fa-solid fa-plus"></i> Nova Conta
+                    </button>
+                </div>
+            </div>
+
+            <!-- Resumo Anual de Pagamento e Legenda Interativa -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-slate-800/80 border border-slate-700/80 rounded-xl p-4 flex items-center justify-between shadow-sm">
+                    <div>
+                        <span class="text-xs text-slate-400 font-medium block">Total Despesas (Ano)</span>
+                        <span id="tabSumDespesa" class="text-lg font-bold text-white">R$ 0,00</span>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-slate-700/50 flex items-center justify-center text-slate-300">
+                        <i class="fa-solid fa-file-invoice-dollar text-lg"></i>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/80 border border-emerald-500/30 rounded-xl p-4 flex items-center justify-between shadow-sm">
+                    <div>
+                        <span class="text-xs text-emerald-400 font-medium block">Total Já Pago</span>
+                        <span id="tabSumPago" class="text-lg font-bold text-emerald-400">R$ 0,00</span>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+                        <i class="fa-solid fa-circle-check text-lg"></i>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/80 border border-rose-500/30 rounded-xl p-4 flex items-center justify-between shadow-sm">
+                    <div>
+                        <span class="text-xs text-rose-400 font-medium block">Falta Pagar (Aberto)</span>
+                        <span id="tabSumFalta" class="text-lg font-bold text-rose-400">R$ 0,00</span>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-rose-500/20 flex items-center justify-center text-rose-400">
+                        <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/80 border border-slate-700/80 rounded-xl p-3 flex flex-col justify-center text-xs space-y-1.5 shadow-sm">
+                    <span class="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-info text-brand-400"></i> Legenda dos Status:
+                    </span>
+                    <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-[11px] text-slate-300">
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block shrink-0"></span> Paga</span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block shrink-0 animate-pulse"></span> Vencida</span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block shrink-0 animate-pulse"></span> Vence Hoje</span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block shrink-0"></span> A Vencer</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400 italic">💡 Clique na bolinha colorida em qualquer mês para dar baixa / reabrir!</span>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl overflow-hidden shadow-sm">
+                <div class="table-scroll">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-900/90 text-slate-300 font-semibold border-b border-slate-700">
+                                <th class="p-3 sticky left-0 bg-slate-900 z-10 w-52 min-w-[200px] border-r border-slate-700">Conta / Categoria</th>
+                                <th class="p-3 text-right min-w-[105px]">Jan</th>
+                                <th class="p-3 text-right min-w-[105px]">Fev</th>
+                                <th class="p-3 text-right min-w-[105px]">Mar</th>
+                                <th class="p-3 text-right min-w-[105px]">Abr</th>
+                                <th class="p-3 text-right min-w-[105px]">Mai</th>
+                                <th class="p-3 text-right min-w-[105px]">Jun</th>
+                                <th class="p-3 text-right min-w-[105px]">Jul</th>
+                                <th class="p-3 text-right min-w-[105px]">Ago</th>
+                                <th class="p-3 text-right min-w-[105px]">Set</th>
+                                <th class="p-3 text-right min-w-[105px]">Out</th>
+                                <th class="p-3 text-right min-w-[105px]">Nov</th>
+                                <th class="p-3 text-right min-w-[105px]">Dez</th>
+                                <th class="p-3 text-right min-w-[125px] bg-slate-950 text-brand-300 font-bold border-l border-slate-700">Total Anual</th>
+                                <th class="p-3 text-center min-w-[50px]">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableExpensesBody" class="divide-y divide-slate-700/50 text-slate-200">
+                            <!-- Injetado dinamicamente -->
+                        </tbody>
+                        <tfoot class="bg-slate-900 font-bold border-t-2 border-slate-700">
+                            <tr class="text-amber-400 bg-amber-500/10">
+                                <td class="p-3 sticky left-0 bg-slate-900 z-10 border-r border-slate-700 font-bold">Total Despesas</td>
+                                <td id="tf-exp-0" class="p-3 text-right">0,00</td>
+                                <td id="tf-exp-1" class="p-3 text-right">0,00</td>
+                                <td id="tf-exp-2" class="p-3 text-right">0,00</td>
+                                <td id="tf-exp-3" class="p-3 text-right">0,00</td>
+                                <td id="tf-exp-4" class="p-3 text-right">0,00</td>
+                                <td id="tf-exp-5" class="p-3 text-right">0,00</td>
+                                <td id="tf-exp-6" class="p-3 text-right">0,00</td>
+                                <td id="tf-exp-7" class="p-3 text-right">0,00</td>
+                                <td id="tf-exp-8" class="p-3 text-right">0,00</td>
+                                <td id="tf-exp-9" class="p-3 text-right">0,00</td>
+                                <td id="tf-exp-10" class="p-3 text-right">0,00</td>
+                                <td id="tf-exp-11" class="p-3 text-right">0,00</td>
+                                <td id="tf-exp-total" class="p-3 text-right bg-slate-950 text-amber-300 border-l border-slate-700">0,00</td>
+                                <td></td>
+                            </tr>
+                            <tr class="text-emerald-400 bg-emerald-500/10 text-xs font-semibold">
+                                <td class="p-2.5 sticky left-0 bg-slate-900 z-10 border-r border-slate-700 font-bold flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block shrink-0"></span> Já Pago
+                                </td>
+                                <td id="tf-paid-0" class="p-2.5 text-right text-emerald-400">0,00</td>
+                                <td id="tf-paid-1" class="p-2.5 text-right text-emerald-400">0,00</td>
+                                <td id="tf-paid-2" class="p-2.5 text-right text-emerald-400">0,00</td>
+                                <td id="tf-paid-3" class="p-2.5 text-right text-emerald-400">0,00</td>
+                                <td id="tf-paid-4" class="p-2.5 text-right text-emerald-400">0,00</td>
+                                <td id="tf-paid-5" class="p-2.5 text-right text-emerald-400">0,00</td>
+                                <td id="tf-paid-6" class="p-2.5 text-right text-emerald-400">0,00</td>
+                                <td id="tf-paid-7" class="p-2.5 text-right text-emerald-400">0,00</td>
+                                <td id="tf-paid-8" class="p-2.5 text-right text-emerald-400">0,00</td>
+                                <td id="tf-paid-9" class="p-2.5 text-right text-emerald-400">0,00</td>
+                                <td id="tf-paid-10" class="p-2.5 text-right text-emerald-400">0,00</td>
+                                <td id="tf-paid-11" class="p-2.5 text-right text-emerald-400">0,00</td>
+                                <td id="tf-paid-total" class="p-2.5 text-right bg-slate-950 text-emerald-300 font-bold border-l border-slate-700">0,00</td>
+                                <td></td>
+                            </tr>
+                            <tr class="text-rose-300 bg-rose-500/10 text-xs font-semibold">
+                                <td class="p-2.5 sticky left-0 bg-slate-900 z-10 border-r border-slate-700 font-bold flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block shrink-0"></span> Falta Pagar
+                                </td>
+                                <td id="tf-unpaid-0" class="p-2.5 text-right text-rose-300">0,00</td>
+                                <td id="tf-unpaid-1" class="p-2.5 text-right text-rose-300">0,00</td>
+                                <td id="tf-unpaid-2" class="p-2.5 text-right text-rose-300">0,00</td>
+                                <td id="tf-unpaid-3" class="p-2.5 text-right text-rose-300">0,00</td>
+                                <td id="tf-unpaid-4" class="p-2.5 text-right text-rose-300">0,00</td>
+                                <td id="tf-unpaid-5" class="p-2.5 text-right text-rose-300">0,00</td>
+                                <td id="tf-unpaid-6" class="p-2.5 text-right text-rose-300">0,00</td>
+                                <td id="tf-unpaid-7" class="p-2.5 text-right text-rose-300">0,00</td>
+                                <td id="tf-unpaid-8" class="p-2.5 text-right text-rose-300">0,00</td>
+                                <td id="tf-unpaid-9" class="p-2.5 text-right text-rose-300">0,00</td>
+                                <td id="tf-unpaid-10" class="p-2.5 text-right text-rose-300">0,00</td>
+                                <td id="tf-unpaid-11" class="p-2.5 text-right text-rose-300">0,00</td>
+                                <td id="tf-unpaid-total" class="p-2.5 text-right bg-slate-950 text-rose-300 font-bold border-l border-slate-700">0,00</td>
+                                <td></td>
+                            </tr>
+                            <tr class="text-emerald-400 bg-emerald-500/10">
+                                <td class="p-3 sticky left-0 bg-slate-900 z-10 border-r border-slate-700 font-bold flex items-center justify-between">
+                                    <span>Receita Total</span>
+                                    <button onclick="editReceitasModal()" class="text-[10px] bg-emerald-600/30 text-emerald-300 px-1.5 py-0.5 rounded hover:bg-emerald-600/50">Editar</button>
+                                </td>
+                                <td id="tf-rec-0" class="p-3 text-right">0,00</td>
+                                <td id="tf-rec-1" class="p-3 text-right">0,00</td>
+                                <td id="tf-rec-2" class="p-3 text-right">0,00</td>
+                                <td id="tf-rec-3" class="p-3 text-right">0,00</td>
+                                <td id="tf-rec-4" class="p-3 text-right">0,00</td>
+                                <td id="tf-rec-5" class="p-3 text-right">0,00</td>
+                                <td id="tf-rec-6" class="p-3 text-right">0,00</td>
+                                <td id="tf-rec-7" class="p-3 text-right">0,00</td>
+                                <td id="tf-rec-8" class="p-3 text-right">0,00</td>
+                                <td id="tf-rec-9" class="p-3 text-right">0,00</td>
+                                <td id="tf-rec-10" class="p-3 text-right">0,00</td>
+                                <td id="tf-rec-11" class="p-3 text-right">0,00</td>
+                                <td id="tf-rec-total" class="p-3 text-right bg-slate-950 text-emerald-300 border-l border-slate-700">0,00</td>
+                                <td></td>
+                            </tr>
+                            <tr class="text-white bg-slate-800">
+                                <td class="p-3 sticky left-0 bg-slate-900 z-10 border-r border-slate-700 font-bold">Sobra Mensal</td>
+                                <td id="tf-sob-0" class="p-3 text-right font-bold">0,00</td>
+                                <td id="tf-sob-1" class="p-3 text-right font-bold">0,00</td>
+                                <td id="tf-sob-2" class="p-3 text-right font-bold">0,00</td>
+                                <td id="tf-sob-3" class="p-3 text-right font-bold">0,00</td>
+                                <td id="tf-sob-4" class="p-3 text-right font-bold">0,00</td>
+                                <td id="tf-sob-5" class="p-3 text-right font-bold">0,00</td>
+                                <td id="tf-sob-6" class="p-3 text-right font-bold">0,00</td>
+                                <td id="tf-sob-7" class="p-3 text-right font-bold">0,00</td>
+                                <td id="tf-sob-8" class="p-3 text-right font-bold">0,00</td>
+                                <td id="tf-sob-9" class="p-3 text-right font-bold">0,00</td>
+                                <td id="tf-sob-10" class="p-3 text-right font-bold">0,00</td>
+                                <td id="tf-sob-11" class="p-3 text-right font-bold">0,00</td>
+                                <td id="tf-sob-total" class="p-3 text-right bg-slate-950 font-extrabold text-brand-300 border-l border-slate-700">0,00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. DIAGNÓSTICO -->
+        <section id="content-diagnosis" class="hidden space-y-6">
+            <div class="bg-gradient-to-r from-slate-800 via-rose-950/30 to-slate-800 border border-rose-500/30 rounded-xl p-5 shadow-md">
+                <div class="flex items-start gap-4">
+                    <div class="bg-rose-500/20 p-3 rounded-xl text-rose-400 mt-1">
+                        <i class="fa-solid fa-stethoscope text-2xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-white">Diagnóstico de Gargalos Financeiros</h2>
+                        <p class="text-xs text-slate-300 mt-1 max-w-3xl leading-relaxed">
+                            Análise automática para identificar a causa raiz: <strong class="text-rose-300">"Por que não está sobrando dinheiro?"</strong>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-5 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold uppercase text-rose-400 tracking-wider">Sangria #1: Dívidas / Empréstimos</span>
+                        <i class="fa-solid fa-building-columns text-rose-400"></i>
+                    </div>
+                    <h4 id="diagEmpTotal" class="text-2xl font-bold text-white">R$ 0,00</h4>
+                    <div id="diagEmpDetail" class="text-xs text-slate-300 bg-slate-900/60 p-3 rounded-lg border border-slate-700/50 space-y-1"></div>
+                </div>
+
+                <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-5 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold uppercase text-amber-400 tracking-wider">Sangria #2: Bancos & Cartões</span>
+                        <i class="fa-solid fa-credit-card text-amber-400"></i>
+                    </div>
+                    <h4 id="diagCardsTotal" class="text-2xl font-bold text-white">R$ 0,00</h4>
+                    <div id="diagCardsDetail" class="text-xs text-slate-300 bg-slate-900/60 p-3 rounded-lg border border-slate-700/50 space-y-1"></div>
+                </div>
+
+                <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-5 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold uppercase text-brand-400 tracking-wider">Sangria #3: Veículo</span>
+                        <i class="fa-solid fa-car text-brand-400"></i>
+                    </div>
+                    <h4 id="diagHrvTotal" class="text-2xl font-bold text-white">R$ 0,00</h4>
+                    <div id="diagHrvDetail" class="text-xs text-slate-300 bg-slate-900/60 p-3 rounded-lg border border-slate-700/50 space-y-1"></div>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-5 space-y-4">
+                <h3 class="text-base font-semibold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-unlock-keyhole text-emerald-400"></i> Alívio Financeiro Previsto (Fim de Parcelas)
+                </h3>
+                <div id="quitacoesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+            </div>
+
+            <div class="bg-slate-800/90 border border-brand-500/40 rounded-xl p-5 space-y-3">
+                <h3 class="text-base font-bold text-brand-300 flex items-center gap-2">
+                    <i class="fa-solid fa-brain"></i> Diagnóstico e Plano de Ação
+                </h3>
+                <div id="diagnosticReportText" class="text-xs sm:text-sm text-slate-300 space-y-2 leading-relaxed"></div>
+            </div>
+        </section>
+
+        <!-- 4. PLANNER -->
+        <section id="content-planner" class="hidden space-y-6">
+            <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-5">
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-bullseye text-emerald-400"></i> Regra 50/30/20 & Distribuição Ideal
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                    <div class="bg-slate-900/70 p-4 rounded-xl border border-slate-700/60 space-y-2">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-300">Necessidades (Ideal 50%)</span>
+                            <span id="p50Current" class="text-brand-400">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                            <div id="p50Bar" class="bg-brand-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900/70 p-4 rounded-xl border border-slate-700/60 space-y-2">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-300">Estilo de Vida (Ideal 30%)</span>
+                            <span id="p30Current" class="text-amber-400">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                            <div id="p30Bar" class="bg-amber-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900/70 p-4 rounded-xl border border-slate-700/60 space-y-2">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-300">Poupança (Ideal 20%)</span>
+                            <span id="p20Current" class="text-emerald-400">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                            <div id="p20Bar" class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-5 space-y-4">
+                    <h3 class="text-base font-semibold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-brand-400"></i> Simulador de Economia
+                    </h3>
+                    <div class="space-y-3 text-xs">
+                        <div class="flex items-center justify-between p-3 bg-slate-900/50 rounded-lg border border-slate-700">
+                            <span>Reduzir Cartões em 15%</span>
+                            <input type="checkbox" id="simCardCut" onchange="calculateSimulation()" class="w-4 h-4 accent-brand-500 cursor-pointer">
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-slate-900/50 rounded-lg border border-slate-700">
+                            <span>Economia em Custo Fixo - 10%</span>
+                            <input type="checkbox" id="simFixedCut" onchange="calculateSimulation()" class="w-4 h-4 accent-brand-500 cursor-pointer">
+                        </div>
+                    </div>
+                    <div class="mt-4 p-4 bg-emerald-950/40 border border-emerald-500/30 rounded-xl">
+                        <span class="text-xs text-emerald-300 font-semibold uppercase">Projeção da Nova Sobra Anual:</span>
+                        <div class="text-2xl font-extrabold text-emerald-400 mt-1" id="simulatedAnnualSavings">R$ 0,00</div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-5 space-y-4">
+                    <h3 class="text-base font-semibold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-amber-400"></i> Reserva de Emergência
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/60 flex justify-between items-center text-xs">
+                            <span>Custo Mensal Médio:</span>
+                            <strong id="reservaCustoMensal" class="text-slate-100">R$ 0,00</strong>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 text-xs">
+                            <div class="p-3 bg-slate-900/60 rounded-lg border border-slate-700/60">
+                                <span class="text-slate-400 block text-[11px]">3 Meses</span>
+                                <span id="reserva3Meses" class="text-base font-bold text-amber-400">R$ 0,00</span>
+                            </div>
+                            <div class="p-3 bg-slate-900/60 rounded-lg border border-slate-700/60">
+                                <span class="text-slate-400 block text-[11px]">6 Meses</span>
+                                <span id="reserva6Meses" class="text-base font-bold text-emerald-400">R$ 0,00</span>
+                            </div>
+                            <div class="p-3 bg-slate-900/60 rounded-lg border border-slate-700/60">
+                                <span class="text-slate-400 block text-[11px]">12 Meses</span>
+                                <span id="reserva12Meses" class="text-base font-bold text-brand-400">R$ 0,00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- RODAPÉ DE CRÉDITOS DO DESENVOLVEDOR -->
+    <footer class="mt-auto border-t border-slate-800 bg-slate-950/80 py-4 text-center text-xs text-slate-400">
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3">
+            <span>Desenvolvido por <strong class="text-slate-200">Wellington Felix Martins</strong></span>
+            <span class="hidden sm:inline text-slate-600">•</span>
+            <span class="inline-flex items-center gap-1.5 text-amber-400 font-medium"><i class="fa-brands fa-java text-xs"></i> Java Software Developer</span>
+        </div>
+    </footer>
+
+    <!-- MODAIS -->
+    <div id="modalAccount" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-lg shadow-2xl p-6 space-y-4 modal-scroll">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                <h3 id="accountModalTitle" class="text-base font-bold text-white">Adicionar Nova Conta / Despesa</h3>
+                <button onclick="closeModal('modalAccount')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="formAccount" onsubmit="saveAccountForm(event)" class="space-y-4 text-xs">
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Nome da Conta / Despesa</label>
+                    <input type="text" id="accName" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white">
+                </div>
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Dia do Vencimento no Mês (1 a 31)</label>
+                    <div class="flex items-center gap-2">
+                        <input type="number" id="accDueDay" min="1" max="31" placeholder="Ex: 10" class="w-32 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" value="10">
+                        <span class="text-xs text-slate-400">Dia de vencimento da fatura/boleto</span>
+                    </div>
+                    <input type="hidden" id="accDueDate" value="">
+                </div>
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Categoria / Tipo</label>
+                    <select id="accCategory" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white">
+                        <option value="Cartões/Bancos">Cartões de Crédito / Bancos</option>
+                        <option value="Empréstimos">Empréstimos / Consignados</option>
+                        <option value="Veículo">Veículo / Transporte</option>
+                        <option value="Custo Fixo">Custo Fixo (Moradia/Escola/Luz)</option>
+                        <option value="Outros">Outros Gastos</option>
+                    </select>
+                </div>
+                <div class="border-t border-slate-700 pt-3">
+                    <span class="block font-semibold text-slate-300 mb-1">Valores da despesa mês a mês</span>
+                    <div class="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                        <script>
+                            (function() {
+                                var mesesNomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+                                mesesNomes.forEach(function(m, idx) {
+                                    document.write('<div><label class="text-[10px] text-slate-400 block">' + m + '</label><input type="text" inputmode="decimal" onfocus="unformatMoneyInput(this)" onblur="formatMoneyInput(this)" id="accMonth_' + idx + '" class="money-input acc-month-input w-full bg-slate-900 border border-slate-700 rounded p-1 text-white text-right text-xs" value="R$ 0,00"></div>');
+                                });
+                            })();
+                        </script>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 border-t border-slate-700 pt-4">
+                    <button type="button" onclick="closeModal('modalAccount')" class="px-4 py-2 bg-slate-700 rounded-lg text-slate-200 font-semibold">Cancelar</button>
+                    <button id="accountSubmitButton" type="submit" class="px-4 py-2 bg-brand-600 rounded-lg text-white font-semibold">Salvar Conta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalManageAccounts" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-2xl shadow-2xl p-6 space-y-4 modal-scroll">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                <h3 class="text-base font-bold text-white">Gerenciar Contas do Ano <span id="manageYearSpan"></span></h3>
+                <button onclick="closeModal('modalManageAccounts')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="max-h-80 overflow-y-auto space-y-2 pr-1" id="manageAccountsList"></div>
+            <div class="flex justify-end border-t border-slate-700 pt-4">
+                <button onclick="closeModal('modalManageAccounts')" class="px-4 py-2 bg-slate-700 rounded-lg text-slate-200 font-semibold text-xs">Concluir</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalReceitas" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-xl shadow-2xl p-6 space-y-4 modal-scroll">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                <h3 class="text-base font-bold text-white">Gerenciar Receitas Fixas e Variáveis</h3>
+                <button onclick="closeModal('modalReceitas')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="saveReceitasForm(event)" class="space-y-4 text-xs">
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" onclick="addRevenueSource('Fixa')" class="px-3 py-2 rounded-lg bg-emerald-700 text-white font-semibold"><i class="fa-solid fa-plus"></i> Adicionar receita fixa</button>
+                    <button type="button" onclick="addRevenueSource('Variável')" class="px-3 py-2 rounded-lg bg-amber-700 text-white font-semibold"><i class="fa-solid fa-plus"></i> Adicionar receita variável</button>
+                </div>
+                <div id="revenueSourcesList" class="space-y-3 max-h-[55vh] overflow-y-auto pr-1"></div>
+                <div class="flex justify-end gap-2 border-t border-slate-700 pt-4">
+                    <button type="button" onclick="closeModal('modalReceitas')" class="px-4 py-2 bg-slate-700 rounded-lg text-slate-200 font-semibold">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-600 rounded-lg text-white font-semibold">Salvar fontes de receita</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalExport" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-lg shadow-2xl p-6 space-y-4 modal-scroll">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-down text-emerald-400"></i> Exportar Dados & Backup (<span class="exportYearDisplay">2026</span>)
+                </h3>
+                <button onclick="closeModal('modalExport')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-slate-300">Escolha o formato desejado para salvar ou fazer backup das suas finanças:</p>
+            
+            <div class="space-y-3">
+                <!-- Opção 1: Excel com abas separadas -->
+                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700 hover:border-emerald-500/50 transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-file-excel text-emerald-400"></i> Planilha Excel Completa (.xlsx)
+                            </h4>
+                            <p class="text-xs text-slate-400 mt-1">Exporta 1 arquivo Excel organizado com <strong>abas separadas</strong>: Despesas, Receitas e Resumo Mensal.</p>
+                        </div>
+                        <button onclick="exportToExcel(); closeModal('modalExport')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 transition ml-3 shrink-0">
+                            <i class="fa-solid fa-download"></i> Baixar .xlsx
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Opção 2: Arquivos Separados CSV -->
+                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700 hover:border-brand-500/50 transition">
+                    <div>
+                        <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-file-csv text-brand-400"></i> Arquivos CSV Separados (.csv)
+                        </h4>
+                        <p class="text-xs text-slate-400 mt-1">Gera arquivos CSV separados (um para Despesas e outro para Receitas):</p>
+                        <div class="flex flex-wrap gap-2 mt-3">
+                            <button onclick="exportCsv('despesas');" class="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+                                <i class="fa-solid fa-arrow-down"></i> Apenas Despesas (.csv)
+                            </button>
+                            <button onclick="exportCsv('receitas');" class="bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+                                <i class="fa-solid fa-arrow-down"></i> Apenas Receitas (.csv)
+                            </button>
+                            <button onclick="exportCsv('ambos');" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+                                <i class="fa-solid fa-download"></i> Ambos Separados
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Opção 3: Backup do Banco de Dados JSON -->
+                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700 hover:border-purple-500/50 transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-database text-purple-400"></i> Backup Completo do Sistema (.json)
+                            </h4>
+                            <p class="text-xs text-slate-400 mt-1">Salva 100% dos dados de <strong>todos os anos</strong>. Recomendado para guardar como cópia de segurança oficial.</p>
+                        </div>
+                        <button onclick="exportJsonBackup(); closeModal('modalExport')" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 transition ml-3 shrink-0">
+                            <i class="fa-solid fa-shield"></i> Baixar Backup
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end border-t border-slate-700 pt-3">
+                <button type="button" onclick="closeModal('modalExport')" class="px-4 py-2 bg-slate-700 rounded-lg text-slate-200 font-semibold text-xs">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE MANUAL DO USUÁRIO & GUIA DE MENUS -->
+    <div id="modalManual" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-4xl shadow-2xl p-5 sm:p-6 space-y-4 modal-scroll flex flex-col max-h-[92vh]">
+            <!-- Header do Modal -->
+            <div class="flex items-center justify-between border-b border-slate-700/80 pb-3 shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-sm font-bold">
+                        <i class="fa-solid fa-book-open"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                            Manual do Sistema • Guia Operacional dos Menus
+                        </h3>
+                        <p class="text-xs text-slate-400">Entenda cada recurso com prints ilustrativos e dicas práticas</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="Manual_do_Sistema.html" target="_blank" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 border border-slate-600 flex items-center gap-1.5 transition" title="Abrir página completa com opção de imprimir / salvar em PDF">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        <span class="hidden sm:inline">Tela Cheia / PDF</span>
+                    </a>
+                    <button onclick="closeModal('modalManual')" class="text-slate-400 hover:text-white p-1 text-lg">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Corpo com Conteúdo e Prints -->
+            <div class="overflow-y-auto space-y-6 pr-1 text-xs sm:text-sm text-slate-300">
+                <!-- Visão Geral dos Menus -->
+                <div class="space-y-2">
+                    <h4 class="font-bold text-sm text-white flex items-center gap-2">
+                        <i class="fa-solid fa-bars text-brand-400"></i> Os 4 Menus Principais de Navegação:
+                    </h4>
+                    <div class="rounded-xl overflow-hidden border border-slate-700 bg-slate-950 p-1">
+                        <img src="manual_assets/mock_menu.svg" alt="Barra de Menus (Demonstração)" class="w-full h-auto rounded-lg">
+                    </div>
+                </div>
+
+                <!-- 1. Dashboard -->
+                <div class="bg-slate-900/60 border border-slate-700/70 rounded-xl p-4 space-y-3">
+                    <div class="flex items-center gap-2 text-white font-bold text-sm sm:text-base">
+                        <i class="fa-solid fa-gauge-high text-brand-400"></i>
+                        <span>1. Dashboard Executivo</span>
+                    </div>
+                    <p class="text-xs text-slate-300">
+                        O Dashboard é o painel de controle executivo. Ele reúne a visão macro de todo o ano e os controles imediatos do mês corrente.
+                    </p>
+                    <div class="rounded-lg overflow-hidden border border-slate-700 bg-slate-950 p-1">
+                        <img src="manual_assets/mock_dashboard_kpis.svg" alt="Dashboard KPIs (Demonstração Fictícia)" class="w-full h-auto rounded">
+                    </div>
+                    <ul class="text-xs space-y-1 list-disc list-inside text-slate-300">
+                        <li><strong>Cards Superiores:</strong> Receita Anual, Despesas Totais, Sobra Líquida e % Comprometido da Renda.</li>
+                        <li><strong>Gráficos:</strong> Linha de Evolução Mensal, Donut de Categorias e Comparativo entre Anos.</li>
+                    </ul>
+                    <div class="pt-2">
+                        <span class="font-semibold text-xs text-white block mb-1">Régua de Vencimentos do Mês:</span>
+                        <div class="rounded-lg overflow-hidden border border-slate-700 bg-slate-950 p-1 mb-2">
+                            <img src="manual_assets/mock_dashboard_cards.svg" alt="Cards de Vencimento (Demonstração Fictícia)" class="w-full h-auto rounded">
+                        </div>
+                        <p class="text-xs text-slate-300">
+                            Filtre qualquer mês (ex: Outubro, Novembro) e veja cada conta com seu status colorido: 
+                            <span class="text-emerald-400 font-semibold">🟢 Paga</span>, 
+                            <span class="text-rose-400 font-semibold">🔴 Vencida</span>, 
+                            <span class="text-amber-400 font-semibold">🟠 Vence Hoje</span> ou 
+                            <span class="text-sky-400 font-semibold">🔵 A Vencer</span>. 
+                            Clique no botão <strong>"Pagar"</strong> para dar baixa instantânea!
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 2. Matriz Mensal -->
+                <div class="bg-slate-900/60 border border-slate-700/70 rounded-xl p-4 space-y-3">
+                    <div class="flex items-center gap-2 text-white font-bold text-sm sm:text-base">
+                        <i class="fa-solid fa-table-cells text-emerald-400"></i>
+                        <span>2. Matriz Mensal</span>
+                    </div>
+                    <p class="text-xs text-slate-300">
+                        A planilha completa com todas as contas nas linhas e os 12 meses do ano nas colunas. É a tela para planejamento anual detalhado.
+                    </p>
+                    <div class="rounded-lg overflow-hidden border border-slate-700 bg-slate-950 p-1">
+                        <img src="manual_assets/mock_matriz_mensal.svg" alt="Matriz Mensal (Demonstração Fictícia)" class="w-full h-auto rounded">
+                    </div>
+                    <ul class="text-xs space-y-1 list-disc list-inside text-slate-300">
+                        <li><strong>Bolinhas Coloridas em Cada Mês:</strong> Mostram se o boleto daquele mês está pago (verde), vencido (vermelho), vence hoje (laranja) ou a vencer (azul). <strong>Clique na bolinha para dar baixa ou reabrir na hora!</strong></li>
+                        <li><strong>Resumo Anual no Topo:</strong> Total Previsto, Total Já Pago (em verde) e Falta Pagar em Aberto (em vermelho).</li>
+                        <li><strong>Coluna Total Anual da Linha:</strong> Mostra o total previsto da conta, quanto já foi pago e quanto falta pagar daquela conta específica.</li>
+                        <li><strong>Rodapé Mensal:</strong> Linhas dedicadas para Despesas Pagas, Falta Pagar, Receita Total e Sobra Líquida.</li>
+                        <li><strong>Botões:</strong> Crie Novas Contas, Gerencie os Vencimentos e Edite Receitas Fixas e Variáveis.</li>
+                    </ul>
+                </div>
+
+                <!-- 3. Diagnóstico -->
+                <div class="bg-slate-900/60 border border-slate-700/70 rounded-xl p-4 space-y-2">
+                    <div class="flex items-center gap-2 text-white font-bold text-sm sm:text-base">
+                        <i class="fa-solid fa-magnifying-glass-chart text-amber-400"></i>
+                        <span>3. Onde Estou Errando? (Diagnóstico de Gargalos)</span>
+                    </div>
+                    <p class="text-xs text-slate-300">
+                        Análise inteligente de inteligência de custos que aponta a causa raiz da falta de dinheiro:
+                    </p>
+                    <ul class="text-xs space-y-1 list-disc list-inside text-slate-300">
+                        <li><strong>As 3 Sangrias de Caixa:</strong> Sangria #1 (Empréstimos/Consignados), Sangria #2 (Bancos/Cartões) e Sangria #3 (Custos Veiculares).</li>
+                        <li><strong>Alívio Financeiro Previsto:</strong> Lista automática que detecta em qual mês cada prestação termina, mostrando quanto dinheiro a mais vai sobrar a cada mês!</li>
+                        <li><strong>Plano de Ação:</strong> Orientações estratégicas para não comprometer a folga financeira gerada pelas quitações.</li>
+                    </ul>
+                </div>
+
+                <!-- 4. Plano 50/30/20 & Reserva -->
+                <div class="bg-slate-900/60 border border-slate-700/70 rounded-xl p-4 space-y-2">
+                    <div class="flex items-center gap-2 text-white font-bold text-sm sm:text-base">
+                        <i class="fa-solid fa-piggy-bank text-rose-400"></i>
+                        <span>4. Plano &amp; Reserva de Emergência</span>
+                    </div>
+                    <ul class="text-xs space-y-1 list-disc list-inside text-slate-300">
+                        <li><strong>Metodologia 50/30/20:</strong> Barras de progresso que medem seus gastos em Necessidades (ideal 50%), Estilo de Vida (ideal 30%) e Poupança (ideal 20%).</li>
+                        <li><strong>Simulador de Economia:</strong> Caixas interativas para simular corte de 15% em cartões ou 10% em custos fixos, recalculando a nova sobra anual em tempo real.</li>
+                        <li><strong>Reserva de Emergência:</strong> Calcula o custo médio mensal e as metas em dinheiro para acumular 3, 6 ou 12 meses de tranquilidade financeira.</li>
+                    </ul>
+                </div>
+
+                <!-- 5. Backups -->
+                <div class="bg-slate-900/60 border border-slate-700/70 rounded-xl p-4 space-y-2">
+                    <div class="flex items-center gap-2 text-white font-bold text-sm sm:text-base">
+                        <i class="fa-solid fa-file-export text-emerald-400"></i>
+                        <span>5. Backups, Exportação e Importação Segura</span>
+                    </div>
+                    <p class="text-xs text-slate-300">
+                        • <strong>Exportar em Excel (.xlsx):</strong> Gera a planilha com abas separadas ("Despesas", "Receitas", "Resumo_Fluxo").
+                        <br>• <strong>Importar Dados:</strong> Você pode selecionar arquivos Excel (.xlsx), CSVs ou JSON de backup de uma só vez. O sistema separa despesas e receitas automaticamente sem misturar nenhum dado!
+                    </p>
+                </div>
+            </div>
+
+            <!-- Rodapé do Modal -->
+            <div class="flex items-center justify-between border-t border-slate-700/80 pt-3 shrink-0">
+                <a href="Manual_do_Sistema.html" target="_blank" class="text-xs text-brand-400 hover:text-brand-300 font-semibold flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-file-pdf"></i> Abrir Versão Completa / Para Impressão
+                </a>
+                <button type="button" onclick="closeModal('modalManual')" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-slate-200 font-semibold text-xs transition">
+                    Fechar Manual
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        var monthsShort = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+        const DEFAULT_DATA_2026 = {
+            expenses: [
+                { }
+            ],
+            revenueSources: [
+                { }
+            ],
+            receitaSalario: new Array(12).fill(0),
+            receitaOutros: new Array(12).fill(0)
+        };
+
+        let editingExpenseId = null;
+        let currentYear = 2026;
+        let financialData = {}; 
+        let chartEvolucaoObj = null;
+        let chartCategoriasObj = null;
+        let chartMultiYearObj = null;
+
+        window.onload = function() {
+            loadDatabase();
+            populateYearSelect();
+            renderAll();
+        };
+
+        function escapeHtml(value) {
+            return String(value || '').replace(/[&<>"']/g, function(char) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char];
+            });
+        }
+
+        function sanitizeDatabase() {
+            var modified = false;
+            Object.keys(financialData).forEach(function(yearKey) {
+                var yearData = financialData[yearKey];
+                if (!yearData || !Array.isArray(yearData.expenses)) return;
+                
+                var cleanExpenses = [];
+                if (!Array.isArray(yearData.revenueSources)) yearData.revenueSources = [];
+                
+                yearData.expenses.forEach(function(item) {
+                    var name = String(item.name || '').trim();
+                    var upper = name.toUpperCase();
+                    
+                    // Remover linhas de total / resumo que foram erroneamente salvas como conta
+                    if (upper.startsWith('TOTAL') || upper.startsWith('RECEITA TOTAL') || upper.startsWith('SOBRA')) {
+                        modified = true;
+                        return;
+                    }
+                    
+                    // Migrar linhas de receita que foram parar erroneamente na tabela de contas
+                    if (upper.startsWith('RECEITA') || upper.startsWith('SALÁRIO') || upper.startsWith('SALARIO')) {
+                        var type = upper.includes('VARI') ? 'Variável' : 'Fixa';
+                        var cleanRevName = name;
+                        if (name.includes(':')) {
+                            cleanRevName = name.split(':')[1].trim();
+                        } else {
+                            cleanRevName = name.replace(/^RECEITA\s*(FIXA|VARI[AÁÀÃÂ]VEL)?\s*/i, '').trim();
+                        }
+                        if (!cleanRevName) cleanRevName = 'Receita ' + (yearData.revenueSources.length + 1);
+                        
+                        var alreadyExists = yearData.revenueSources.some(function(r) {
+                            return (r.name || '').toLowerCase() === cleanRevName.toLowerCase();
+                        });
+                        if (!alreadyExists) {
+                            yearData.revenueSources.push({
+                                id: 'rev_migrated_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                                name: cleanRevName,
+                                type: type,
+                                values: Array.isArray(item.values) ? item.values : new Array(12).fill(0)
+                            });
+                        }
+                        modified = true;
+                        return;
+                    }
+                    
+                    // Extrair categoria se estiver no formato "Nome (Categoria)"
+                    if (name.includes('(') && name.includes(')') && (item.category === 'Outros' || !item.category)) {
+                        var mCat = name.match(/^(.*?)\s*\((.*?)\)$/);
+                        if (mCat) {
+                            item.name = mCat[1].trim();
+                            item.category = mCat[2].trim();
+                            modified = true;
+                        }
+                    }
+
+                    // Garantir dia de vencimento e array de meses pagos
+                    if (!item.dueDay) {
+                        var lowerName = (item.name || '').toLowerCase();
+                        var defaultDueDays = {
+                            'bradesco': 10, 'escola': 5, 'água': 15, 'agua': 15, 'luz enel': 20, 'enel': 20,
+                            'ipva': 10, 'sylvia': 15, 'mercado pago': 12, 'santander': 15, 'convênio': 25,
+                            'convenio': 25, 'inter': 20, 'consignado': 5, 'c&a': 8, 'hrv': 15
+                        };
+                        var dDay = 10;
+                        for (var k in defaultDueDays) {
+                            if (lowerName.indexOf(k) >= 0) { dDay = defaultDueDays[k]; break; }
+                        }
+                        item.dueDay = dDay;
+                        item.dueDate = String(dDay);
+                        modified = true;
+                    }
+                    if (!Array.isArray(item.paidMonths)) {
+                        item.paidMonths = new Array(12).fill(false);
+                        modified = true;
+                    }
+                    
+                    cleanExpenses.push(item);
+                });
+                
+                yearData.expenses = cleanExpenses;
+            });
+            
+            return modified;
+        }
+
+        function loadDatabase() {
+            var saved = localStorage.getItem('finguard_db_v5');
+            if (saved) {
+                try {
+                    financialData = JSON.parse(saved);
+                } catch(e) {
+                    financialData = {};
+                }
+            }
+            if (!financialData[2026] || !financialData[2026].expenses || financialData[2026].expenses.length === 0) {
+                financialData[2026] = JSON.parse(JSON.stringify(DEFAULT_DATA_2026));
+            }
+            for (var y = 2018; y <= 2027; y++) {
+                if (!financialData[y]) {
+                    financialData[y] = { expenses: [], revenueSources: [], receitaSalario: new Array(12).fill(0), receitaOutros: new Array(12).fill(0) };
+                }
+            }
+            
+            // Auto-cura de qualquer dado corrompido em sessões anteriores
+            sanitizeDatabase();
+            saveDatabase();
+        }
+
+        function saveDatabase() {
+            localStorage.setItem('finguard_db_v5', JSON.stringify(financialData));
+        }
+
+        function resetToDefaultData() {
+            if (confirm("Deseja restaurar as finanças do ano de 2026 com os dados oficiais (18 contas e 10 receitas)?")) {
+                financialData[2026] = JSON.parse(JSON.stringify(DEFAULT_DATA_2026));
+                saveDatabase();
+                renderAll();
+                alert("Dados de 2026 restaurados com sucesso!");
+            }
+        }
+
+        function populateYearSelect() {
+            var select = document.getElementById('yearSelect');
+            select.innerHTML = '';
+            var years = Object.keys(financialData).map(Number).sort(function(a,b) { return a - b; });
+            years.forEach(function(y) {
+                var opt = document.createElement('option');
+                opt.value = y;
+                opt.textContent = y;
+                if (y === currentYear) opt.selected = true;
+                select.appendChild(opt);
+            });
+            var exportYearSpan = document.querySelector('.exportYearDisplay');
+            if (exportYearSpan) exportYearSpan.textContent = currentYear;
+        }
+
+        function changeYear(newYear) {
+            currentYear = parseInt(newYear, 10);
+            document.getElementById('tableYearDisplay').textContent = currentYear;
+            var exportYearSpan = document.querySelector('.exportYearDisplay');
+            if (exportYearSpan) exportYearSpan.textContent = currentYear;
+            renderAll();
+        }
+
+        function addNewYearPrompt() {
+            var yearStr = prompt("Digite o novo ano que deseja adicionar (ex: 2027, 2028):");
+            if (yearStr) {
+                var y = parseInt(yearStr, 10);
+                if (!isNaN(y) && y > 2000 && y < 2100) {
+                    if (!financialData[y]) {
+                        financialData[y] = { expenses: [], revenueSources: [], receitaSalario: new Array(12).fill(0), receitaOutros: new Array(12).fill(0) };
+                        saveDatabase();
+                        populateYearSelect();
+                        changeYear(y);
+                    } else {
+                        changeYear(y);
+                    }
+                }
+            }
+        }
+
+        function switchTab(tabId) {
+            ['dashboard', 'table', 'diagnosis', 'planner'].forEach(function(id) {
+                var section = document.getElementById('content-' + id);
+                var tab = document.getElementById('tab-' + id);
+                if (id === tabId) {
+                    section.classList.remove('hidden');
+                    tab.classList.add('active');
+                } else {
+                    section.classList.add('hidden');
+                    tab.classList.remove('active');
+                }
+            });
+            if (tabId === 'dashboard') {
+                renderCharts();
+            }
+        }
+
+        function openExportModal() {
+            var exportYearSpan = document.querySelector('.exportYearDisplay');
+            if (exportYearSpan) exportYearSpan.textContent = currentYear;
+            document.getElementById('modalExport').classList.remove('hidden');
+        }
+
+        function openManualModal() {
+            document.getElementById('modalManual').classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function getYearTotals(year) {
+            var data = financialData[year] || { expenses: [], revenueSources: [], receitaSalario: new Array(12).fill(0), receitaOutros: new Array(12).fill(0) };
+            var monthlyDespesas = new Array(12).fill(0);
+            var monthlyPagas = new Array(12).fill(0);
+            var monthlyFaltaPagar = new Array(12).fill(0);
+            if (!Array.isArray(data.revenueSources)) data.revenueSources = [];
+            
+            var sal = new Array(12).fill(0);
+            var out = new Array(12).fill(0);
+            data.revenueSources.forEach(function(source) {
+                if (!Array.isArray(source.values)) source.values = new Array(12).fill(0);
+                for (var i = 0; i < 12; i++) {
+                    var val = Number(source.values[i]) || 0;
+                    if (source.type === 'Fixa') sal[i] += val;
+                    else out[i] += val;
+                }
+            });
+            var monthlyReceitas = sal.map(function(v, i) { return (Number(v)||0) + (Number(out[i])||0); });
+
+            (data.expenses || []).forEach(function(exp) {
+                if (!Array.isArray(exp.values)) exp.values = new Array(12).fill(0);
+                exp.values.forEach(function(v, idx) {
+                    var num = Number(v) || 0;
+                    monthlyDespesas[idx] += num;
+                    if (Array.isArray(exp.paidMonths) && exp.paidMonths[idx] === true) {
+                        monthlyPagas[idx] += num;
+                    } else {
+                        monthlyFaltaPagar[idx] += num;
+                    }
+                });
+            });
+
+            var monthlySobras = monthlyReceitas.map(function(r, i) { return r - monthlyDespesas[i]; });
+            var totalReceita = monthlyReceitas.reduce(function(a,b) { return a+b; }, 0);
+            var totalDespesa = monthlyDespesas.reduce(function(a,b) { return a+b; }, 0);
+            var totalPago = monthlyPagas.reduce(function(a,b) { return a+b; }, 0);
+            var totalFaltaPagar = monthlyFaltaPagar.reduce(function(a,b) { return a+b; }, 0);
+            var totalSobra = totalReceita - totalDespesa;
+
+            return {
+                monthlyDespesas: monthlyDespesas,
+                monthlyReceitas: monthlyReceitas,
+                monthlySobras: monthlySobras,
+                monthlyPagas: monthlyPagas,
+                monthlyFaltaPagar: monthlyFaltaPagar,
+                totalReceita: totalReceita,
+                totalDespesa: totalDespesa,
+                totalPago: totalPago,
+                totalFaltaPagar: totalFaltaPagar,
+                totalSobra: totalSobra,
+                expenses: data.expenses || [],
+                revenueSources: data.revenueSources || []
+            };
+        }
+
+        function formatBRL(val) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
+        }
+
+        function parseMoneyValue(value) {
+            if (typeof value === 'number') return isFinite(value) ? value : 0;
+            if (value === null || value === undefined) return 0;
+            var text = String(value).trim().replace(/R\$/gi, '').replace(/\s/g, '');
+            if (!text) return 0;
+            if (text.indexOf('.') !== -1 && text.indexOf(',') !== -1) {
+                if (text.lastIndexOf(',') > text.lastIndexOf('.')) {
+                    text = text.replace(/\./g, '').replace(',', '.');
+                } else {
+                    text = text.replace(/,/g, '');
+                }
+            } else if (text.indexOf(',') !== -1) {
+                text = text.replace(',', '.');
+            }
+            var parsed = Number(text);
+            return isFinite(parsed) ? parsed : 0;
+        }
+
+        function parseMoneyInput(value) {
+            return parseMoneyValue(value);
+        }
+
+        function formatMoneyInput(input) {
+            if (!input) return;
+            var val = parseMoneyInput(input.value);
+            input.value = formatBRL(val);
+        }
+
+        function unformatMoneyInput(input) {
+            if (!input) return;
+            var val = parseMoneyInput(input.value);
+            input.value = val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (input.value === '0,00') input.select();
+        }
+
+        function renderAll() {
+            renderKPIs();
+            renderCurrentMonthDueList();
+            renderCharts();
+            renderTable();
+            renderDiagnosis();
+            renderPlanner();
+        }
+
+        function renderKPIs() {
+            var totals = getYearTotals(currentYear);
+            document.getElementById('kpiReceita').textContent = formatBRL(totals.totalReceita);
+            document.getElementById('kpiReceitaMedia').textContent = formatBRL(totals.totalReceita / 12);
+            document.getElementById('kpiDespesa').textContent = formatBRL(totals.totalDespesa);
+            document.getElementById('kpiDespesaMedia').textContent = formatBRL(totals.totalDespesa / 12);
+
+            var kpiSobraEl = document.getElementById('kpiSobra');
+            kpiSobraEl.textContent = formatBRL(totals.totalSobra);
+            kpiSobraEl.className = totals.totalSobra < 0 ? "text-2xl font-bold text-rose-500 mt-1" : "text-2xl font-bold text-emerald-400 mt-1";
+
+            var taxaPoupanca = totals.totalReceita > 0 ? ((totals.totalSobra / totals.totalReceita) * 100).toFixed(1) : 0;
+            document.getElementById('kpiSobraTaxa').textContent = taxaPoupanca + '%';
+
+            var pctComprometido = totals.totalReceita > 0 ? Math.min(100, Math.round((totals.totalDespesa / totals.totalReceita) * 100)) : 0;
+            document.getElementById('kpiComprometimento').textContent = pctComprometido + '%';
+            document.getElementById('kpiComprometimentoBar').style.width = pctComprometido + '%';
+
+            var quickAlerts = document.getElementById('quickAlertsContainer');
+            if (quickAlerts) {
+                quickAlerts.innerHTML = '';
+                if (totals.totalSobra < 0) {
+                    var alertDiv = document.createElement('div');
+                    alertDiv.className = 'bg-rose-500/15 border border-rose-500/30 text-rose-300 p-3 rounded-xl flex items-center justify-between text-xs';
+                    alertDiv.innerHTML = '<span><i class="fa-solid fa-triangle-exclamation mr-1.5 text-rose-400"></i> Seu orçamento de <strong>' + currentYear + '</strong> está deficitário em <strong>' + formatBRL(Math.abs(totals.totalSobra)) + '</strong>. Acesse a aba <strong>Onde Estou Errando?</strong> para identificar gargalos e sair do vermelho.</span><button onclick="switchTab(\'diagnosis\')" class="bg-rose-600 hover:bg-rose-500 text-white font-semibold px-2.5 py-1 rounded-md text-[11px] shrink-0 ml-2">Ver Diagnóstico</button>';
+                    quickAlerts.appendChild(alertDiv);
+                } else if (pctComprometido > 85) {
+                    var alertDiv = document.createElement('div');
+                    alertDiv.className = 'bg-amber-500/15 border border-amber-500/30 text-amber-300 p-3 rounded-xl flex items-center justify-between text-xs';
+                    alertDiv.innerHTML = '<span><i class="fa-solid fa-circle-exclamation mr-1.5 text-amber-400"></i> Alerta: <strong>' + pctComprometido + '%</strong> da sua receita está comprometida com dívidas e despesas. Cuidado com novos gastos!</span><button onclick="switchTab(\'planner\')" class="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-2.5 py-1 rounded-md text-[11px] shrink-0 ml-2">Simular Economia</button>';
+                    quickAlerts.appendChild(alertDiv);
+                }
+            }
+        }
+
+        function getExpenseDueDay(exp) {
+            if (!exp) return 10;
+            if (exp.dueDay && !isNaN(exp.dueDay)) return parseInt(exp.dueDay, 10);
+            if (exp.dueDate) {
+                var s = String(exp.dueDate).trim();
+                if (/^\d{1,2}$/.test(s)) return parseInt(s, 10);
+                if (s.indexOf('-') !== -1) {
+                    var parts = s.split('-');
+                    var d = parseInt(parts[parts.length - 1], 10);
+                    if (!isNaN(d) && d >= 1 && d <= 31) return d;
+                }
+            }
+            return 10;
+        }
+
+        function promptSetDueDay(expIndex) {
+            var dataYear = financialData[currentYear];
+            if (!dataYear || !dataYear.expenses || !dataYear.expenses[expIndex]) return;
+            var exp = dataYear.expenses[expIndex];
+            var currentDay = getExpenseDueDay(exp);
+
+            var input = prompt("Defina o dia do mês para o vencimento de \"" + exp.name + "\" (1 a 31):", currentDay);
+            if (input !== null) {
+                var dayNum = parseInt(input.trim(), 10);
+                if (!isNaN(dayNum) && dayNum >= 1 && dayNum <= 31) {
+                    exp.dueDay = dayNum;
+                    exp.dueDate = String(dayNum);
+                    saveDatabase();
+                    renderAll();
+                } else {
+                    alert("Por favor, digite um dia válido entre 1 e 31.");
+                }
+            }
+        }
+
+        function toggleExpensePaid(expIndex, monthIndex) {
+            var dataYear = financialData[currentYear];
+            if (!dataYear || !dataYear.expenses || !dataYear.expenses[expIndex]) return;
+            var exp = dataYear.expenses[expIndex];
+
+            if (!Array.isArray(exp.paidMonths)) {
+                exp.paidMonths = new Array(12).fill(false);
+            }
+
+            exp.paidMonths[monthIndex] = !exp.paidMonths[monthIndex];
+            saveDatabase();
+            renderAll();
+        }
+
+        function renderCurrentMonthDueList() {
+            var container = document.getElementById('currentMonthDueList');
+            var monthSelect = document.getElementById('dashboardMonthFilter');
+            if (!container || !monthSelect) return;
+            var month = parseInt(monthSelect.value, 10);
+            var year = currentYear;
+            var entries = [];
+            var dataYear = financialData[year];
+
+            if (dataYear && dataYear.expenses) {
+                dataYear.expenses.forEach(function(exp, expIndex) {
+                    var value = Number((exp.values || [])[month]) || 0;
+                    if (value <= 0) return;
+
+                    var dueDay = getExpenseDueDay(exp);
+                    var isPaid = Array.isArray(exp.paidMonths) && exp.paidMonths[month] === true;
+
+                    entries.push({
+                        name: exp.name || 'Conta',
+                        category: exp.category || 'Outros',
+                        value: value,
+                        dueDay: dueDay,
+                        isPaid: isPaid,
+                        expIndex: expIndex,
+                        monthIndex: month
+                    });
+                });
+            }
+
+            var today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            var countVencidas = 0;
+            var countAVencer = 0;
+            var countPagas = 0;
+
+            entries.forEach(function(item) {
+                if (item.isPaid) {
+                    item.status = 'Paga';
+                    item.statusSort = 3;
+                    countPagas++;
+                } else {
+                    var dueObj = new Date(year, month, item.dueDay);
+                    dueObj.setHours(0, 0, 0, 0);
+                    var diffDays = Math.ceil((dueObj - today) / (1000 * 60 * 60 * 24));
+
+                    if (diffDays < 0) {
+                        item.status = 'Vencida';
+                        item.statusSort = 0;
+                        countVencidas++;
+                    } else if (diffDays === 0) {
+                        item.status = 'Vence Hoje';
+                        item.statusSort = 1;
+                        countAVencer++;
+                    } else {
+                        item.status = 'A Vencer';
+                        item.statusSort = 2;
+                        countAVencer++;
+                    }
+                }
+            });
+
+            entries.sort(function(a, b) {
+                if (a.statusSort !== b.statusSort) return a.statusSort - b.statusSort;
+                return a.dueDay - b.dueDay;
+            });
+
+            var elVenc = document.getElementById('badgeCountVencidas');
+            var elAVenc = document.getElementById('badgeCountAVencer');
+            var elPagas = document.getElementById('badgeCountPagas');
+            if (elVenc) elVenc.textContent = countVencidas + ' Vencidas';
+            if (elAVenc) elAVenc.textContent = countAVencer + ' A Vencer';
+            if (elPagas) elPagas.textContent = countPagas + ' Pagas';
+
+            container.innerHTML = '';
+            if (entries.length === 0) {
+                container.innerHTML = '<div class="col-span-full py-8 text-center text-slate-400 bg-slate-900/40 rounded-xl border border-slate-700/50 text-xs">Nenhuma conta com valor cadastrado para este mês.</div>';
+                return;
+            }
+
+            entries.forEach(function(item) {
+                var dayStr = String(item.dueDay).padStart(2, '0');
+                var monthStr = String(month + 1).padStart(2, '0');
+                var fullDueDateStr = dayStr + '/' + monthStr + '/' + year;
+
+                var badgeHtml = '';
+                var borderClass = 'border-slate-700/80';
+                var btnActionHtml = '';
+
+                if (item.status === 'Paga') {
+                    borderClass = 'border-emerald-500/40 bg-slate-800/90';
+                    badgeHtml = '<span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1 shadow-sm"><i class="fa-solid fa-circle-check text-[10px]"></i> Paga</span>';
+                    btnActionHtml = '<button onclick="toggleExpensePaid(' + item.expIndex + ', ' + month + ')" class="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-emerald-900/40 hover:bg-emerald-800/60 text-emerald-300 border border-emerald-600/40 transition flex items-center gap-1" title="Clique para desmarcar"><i class="fa-solid fa-check text-[10px]"></i> Pago</button>';
+                } else if (item.status === 'Vencida') {
+                    borderClass = 'border-rose-500/40 bg-slate-800/95';
+                    badgeHtml = '<span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center gap-1 shadow-sm"><i class="fa-solid fa-triangle-exclamation text-[10px]"></i> Vencida</span>';
+                    btnActionHtml = '<button onclick="toggleExpensePaid(' + item.expIndex + ', ' + month + ')" class="text-[11px] font-semibold px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white transition shadow-sm" title="Marcar conta como paga">Pagar</button>';
+                } else if (item.status === 'Vence Hoje') {
+                    borderClass = 'border-amber-500/50 bg-slate-800/95';
+                    badgeHtml = '<span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse flex items-center gap-1 shadow-sm"><i class="fa-solid fa-clock text-[10px]"></i> Vence Hoje</span>';
+                    btnActionHtml = '<button onclick="toggleExpensePaid(' + item.expIndex + ', ' + month + ')" class="text-[11px] font-semibold px-3 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 text-white transition shadow-sm" title="Marcar conta como paga">Pagar</button>';
+                } else {
+                    borderClass = 'border-sky-500/30 bg-slate-800/90';
+                    badgeHtml = '<span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 flex items-center gap-1 shadow-sm"><i class="fa-regular fa-calendar-check text-[10px]"></i> A Vencer</span>';
+                    btnActionHtml = '<button onclick="toggleExpensePaid(' + item.expIndex + ', ' + month + ')" class="text-[11px] font-semibold px-3 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 transition" title="Marcar conta como paga">Pagar</button>';
+                }
+
+                var card = document.createElement('div');
+                card.className = 'rounded-xl border ' + borderClass + ' p-4 flex flex-col justify-between shadow-sm hover:border-slate-500 transition duration-200';
+                card.innerHTML = 
+                    '<div class="space-y-3">' +
+                        '<div class="flex items-start justify-between gap-2">' +
+                            '<div class="min-w-0 flex-1">' +
+                                '<h4 class="font-bold text-sm text-slate-100 truncate" title="' + escapeHtml(item.name) + '">' + escapeHtml(item.name) + '</h4>' +
+                                '<span class="text-[10px] text-slate-400 font-medium block truncate">' + escapeHtml(item.category) + '</span>' +
+                            '</div>' +
+                            '<div class="shrink-0 cursor-pointer" onclick="toggleExpensePaid(' + item.expIndex + ', ' + month + ')" title="Clique para alternar status">' +
+                                badgeHtml +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="py-2 border-y border-slate-700/50 flex items-baseline justify-between">' +
+                            '<span class="text-base font-extrabold text-white">' + formatBRL(item.value) + '</span>' +
+                        '</div>' +
+                        '<div class="flex items-center justify-between text-xs pt-0.5 gap-2">' +
+                            '<div class="flex items-center gap-1.5 text-slate-400 text-[11px] min-w-0">' +
+                                '<i class="fa-regular fa-calendar text-slate-500 shrink-0"></i>' +
+                                '<span class="truncate cursor-pointer hover:text-brand-300 transition" onclick="promptSetDueDay(' + item.expIndex + ')" title="Clique para alterar dia de vencimento">' +
+                                    'Venc.: <strong class="text-slate-200 font-semibold">' + fullDueDateStr + '</strong>' +
+                                    '<i class="fa-solid fa-pen text-[9px] text-slate-500 hover:text-slate-300 ml-1"></i>' +
+                                '</span>' +
+                            '</div>' +
+                            btnActionHtml +
+                        '</div>' +
+                    '</div>';
+                container.appendChild(card);
+            });
+        }
+
+        function renderCharts() {
+            var totals = getYearTotals(currentYear);
+            var ctxEvol = document.getElementById('chartEvolucao').getContext('2d');
+            if (chartEvolucaoObj) chartEvolucaoObj.destroy();
+
+            chartEvolucaoObj = new Chart(ctxEvol, {
+                type: 'line',
+                data: {
+                    labels: monthsShort,
+                    datasets: [
+                        { label: 'Receitas', data: totals.monthlyReceitas, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', borderWidth: 2, fill: true },
+                        { label: 'Despesas', data: totals.monthlyDespesas, borderColor: '#f43f5e', backgroundColor: 'rgba(244, 63, 94, 0.1)', borderWidth: 2, fill: true }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            var catTotals = {};
+            totals.expenses.forEach(function(e) {
+                var cat = e.category || 'Outros';
+                var sum = (e.values || []).reduce(function(a,b){ return a + (Number(b)||0); }, 0);
+                catTotals[cat] = (catTotals[cat] || 0) + sum;
+            });
+            var catLabels = Object.keys(catTotals);
+            var catValues = Object.values(catTotals);
+
+            var ctxCat = document.getElementById('chartCategorias').getContext('2d');
+            if (chartCategoriasObj) chartCategoriasObj.destroy();
+            var chartColors = ['#f43f5e', '#f59e0b', '#0284c7', '#8b5cf6', '#10b981', '#64748b'];
+            chartCategoriasObj = new Chart(ctxCat, {
+                type: 'doughnut',
+                data: {
+                    labels: catLabels.length ? catLabels : ['Sem dados'],
+                    datasets: [{ data: catValues.length ? catValues : [1], backgroundColor: chartColors }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '70%' }
+            });
+
+            var legendEl = document.getElementById('chartCategoriasLegend');
+            if (legendEl) {
+                var totalCatSum = catValues.reduce(function(a,b){ return a+b; }, 0) || 1;
+                legendEl.innerHTML = catLabels.map(function(label, idx) {
+                    var val = catValues[idx] || 0;
+                    var pct = Math.round((val / totalCatSum) * 100);
+                    var col = chartColors[idx % chartColors.length];
+                    return '<div class="flex items-center justify-between">' +
+                        '<div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background-color:' + col + '"></span><span class="text-slate-300">' + escapeHtml(label) + '</span></div>' +
+                        '<span class="font-semibold text-slate-200">' + formatBRL(val) + ' (' + pct + '%)</span>' +
+                        '</div>';
+                }).join('');
+            }
+
+            var yearsArr = Object.keys(financialData).map(Number).sort(function(a,b){return a-b;});
+            var multiRec = [];
+            var multiDesp = [];
+            yearsArr.forEach(function(y) {
+                var t = getYearTotals(y);
+                multiRec.push(t.totalReceita);
+                multiDesp.push(t.totalDespesa);
+            });
+
+            var ctxMulti = document.getElementById('chartMultiYear').getContext('2d');
+            if (chartMultiYearObj) chartMultiYearObj.destroy();
+            chartMultiYearObj = new Chart(ctxMulti, {
+                type: 'bar',
+                data: {
+                    labels: yearsArr.map(String),
+                    datasets: [
+                        { label: 'Receita Anual', data: multiRec, backgroundColor: '#10b981' },
+                        { label: 'Despesa Anual', data: multiDesp, backgroundColor: '#f43f5e' }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function renderTable() {
+            var data = financialData[currentYear] || { expenses: [] };
+            var tbody = document.getElementById('tableExpensesBody');
+            tbody.innerHTML = '';
+
+            var today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            (data.expenses || []).forEach(function(exp, expIdx) {
+                var tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/80 transition-colors';
+                var totalRow = (exp.values || []).reduce(function(a,b){ return a + (Number(b)||0); }, 0);
+                var paidRow = 0;
+                (exp.values || []).forEach(function(v, mIdx) {
+                    if (Array.isArray(exp.paidMonths) && exp.paidMonths[mIdx] === true) {
+                        paidRow += (Number(v) || 0);
+                    }
+                });
+                var unpaidRow = Math.max(0, totalRow - paidRow);
+                var dueDay = getExpenseDueDay(exp);
+
+                var tds = '<td class="p-2.5 sticky left-0 bg-slate-800 z-10 border-r border-slate-700 font-semibold text-white">' +
+                    '<div class="flex items-center justify-between gap-1.5">' +
+                        '<div class="min-w-0 flex-1">' +
+                            '<div class="truncate max-w-[130px] font-bold text-slate-100" title="' + escapeHtml(exp.name) + '">' + escapeHtml(exp.name) + '</div>' +
+                            '<div class="flex items-center gap-1.5 text-[10px] text-slate-400 mt-0.5">' +
+                                '<span class="bg-slate-700/60 px-1 py-0.2 rounded truncate max-w-[70px]">' + escapeHtml(exp.category || 'Outros') + '</span>' +
+                                '<span class="cursor-pointer hover:text-brand-300 transition flex items-center gap-0.5 text-slate-400" onclick="promptSetDueDay(' + expIdx + ')" title="Clique para alterar dia de vencimento">' +
+                                    '<i class="fa-regular fa-calendar-check text-[9px] text-slate-500"></i> Dia ' + dueDay +
+                                '</span>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div></td>';
+
+                (exp.values || new Array(12).fill(0)).forEach(function(v, mIdx) {
+                    var val = Number(v) || 0;
+                    var isPaid = Array.isArray(exp.paidMonths) && exp.paidMonths[mIdx] === true;
+                    var dotHtml = '';
+                    var inputBorderClass = 'border-transparent hover:border-slate-600 focus:border-brand-500 bg-slate-900/60 text-slate-200';
+
+                    if (val > 0) {
+                        if (isPaid) {
+                            dotHtml = '<button type="button" onclick="toggleExpensePaid(' + expIdx + ', ' + mIdx + ')" class="w-4 h-4 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white flex items-center justify-center shrink-0 shadow-sm transition transform hover:scale-110 cursor-pointer" title="Conta PAGA! Clique para reabrir / desmarcar"><i class="fa-solid fa-check text-[8px]"></i></button>';
+                            inputBorderClass = 'border-emerald-500/40 bg-emerald-950/20 text-emerald-300 font-medium hover:border-emerald-400 focus:border-emerald-400';
+                        } else {
+                            var dueObj = new Date(currentYear, mIdx, dueDay);
+                            dueObj.setHours(0, 0, 0, 0);
+                            var diffDays = Math.ceil((dueObj - today) / (1000 * 60 * 60 * 24));
+
+                            if (diffDays < 0) {
+                                dotHtml = '<button type="button" onclick="toggleExpensePaid(' + expIdx + ', ' + mIdx + ')" class="w-4 h-4 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-sm animate-pulse transition transform hover:scale-110 cursor-pointer" title="VENCIDA (' + Math.abs(diffDays) + 'd atrás, dia ' + dueDay + ')! Clique para dar baixa"><i class="fa-solid fa-exclamation text-[8px]"></i></button>';
+                                inputBorderClass = 'border-rose-500/40 bg-rose-950/20 text-rose-200 font-semibold hover:border-rose-400 focus:border-rose-400';
+                            } else if (diffDays === 0) {
+                                dotHtml = '<button type="button" onclick="toggleExpensePaid(' + expIdx + ', ' + mIdx + ')" class="w-4 h-4 rounded-full bg-amber-500 hover:bg-amber-400 text-white flex items-center justify-center shrink-0 shadow-sm animate-pulse transition transform hover:scale-110 cursor-pointer" title="Vence HOJE (dia ' + dueDay + ')! Clique para dar baixa"><i class="fa-solid fa-clock text-[8px]"></i></button>';
+                                inputBorderClass = 'border-amber-500/40 bg-amber-950/20 text-amber-200 font-semibold hover:border-amber-400 focus:border-amber-400';
+                            } else {
+                                dotHtml = '<button type="button" onclick="toggleExpensePaid(' + expIdx + ', ' + mIdx + ')" class="w-4 h-4 rounded-full bg-sky-500/20 hover:bg-sky-500 border border-sky-400/50 text-sky-400 hover:text-white flex items-center justify-center shrink-0 shadow-sm transition transform hover:scale-110 cursor-pointer" title="A Vencer no dia ' + dueDay + '! Clique para dar baixa"><span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span></button>';
+                                inputBorderClass = 'border-transparent hover:border-slate-600 focus:border-brand-500 bg-slate-900/60 text-slate-200';
+                            }
+                        }
+                    } else {
+                        dotHtml = '<span class="w-3.5 h-3.5 rounded-full inline-block bg-slate-800/40 shrink-0" title="Sem lançamento"></span>';
+                        inputBorderClass = 'border-transparent hover:border-slate-600 focus:border-brand-500 bg-slate-900/40 text-slate-500';
+                    }
+
+                    tds += '<td class="p-1.5 text-right whitespace-nowrap">' +
+                           '<div class="flex items-center justify-end gap-1.5">' +
+                           dotHtml +
+                           '<input type="text" inputmode="decimal" value="' + formatBRL(val) + '" onfocus="unformatMoneyInput(this)" onblur="formatMoneyInput(this)" onchange="updateCellExpense(' + expIdx + ', ' + mIdx + ', this.value)" class="money-input w-20 sm:w-24 border rounded px-1.5 py-1 text-right text-xs transition ' + inputBorderClass + '">' +
+                           '</div></td>';
+                });
+
+                tds += '<td class="p-2.5 text-right bg-slate-950 font-bold text-slate-100 border-l border-slate-700 leading-tight">' +
+                       '<div>' + formatBRL(totalRow) + '</div>' +
+                       '<div class="text-[10px] font-medium text-emerald-400 mt-0.5" title="Total já pago desta conta">Pago: ' + formatBRL(paidRow) + '</div>' +
+                       (unpaidRow > 0 ? '<div class="text-[9px] font-normal text-rose-400/80" title="Total restante a pagar desta conta">Falta: ' + formatBRL(unpaidRow) + '</div>' : '') +
+                       '</td>';
+                tds += '<td class="p-2 text-center"><button onclick="deleteExpenseRow(' + expIdx + ')" class="text-slate-500 hover:text-rose-400 p-1" title="Excluir conta"><i class="fa-solid fa-trash text-xs"></i></button></td>';
+                tr.innerHTML = tds;
+                tbody.appendChild(tr);
+            });
+
+            var totals = getYearTotals(currentYear);
+            for (var i = 0; i < 12; i++) {
+                document.getElementById('tf-exp-' + i).textContent = totals.monthlyDespesas[i].toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+                
+                var elPaid = document.getElementById('tf-paid-' + i);
+                if (elPaid) elPaid.textContent = totals.monthlyPagas[i].toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+                
+                var elUnpaid = document.getElementById('tf-unpaid-' + i);
+                if (elUnpaid) elUnpaid.textContent = totals.monthlyFaltaPagar[i].toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+                document.getElementById('tf-rec-' + i).textContent = totals.monthlyReceitas[i].toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+                var sob = totals.monthlySobras[i];
+                var sobEl = document.getElementById('tf-sob-' + i);
+                sobEl.textContent = sob.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+                sobEl.className = sob < 0 ? "p-3 text-right font-bold text-rose-400" : "p-3 text-right font-bold text-emerald-400";
+            }
+            document.getElementById('tf-exp-total').textContent = formatBRL(totals.totalDespesa);
+
+            var elPaidTot = document.getElementById('tf-paid-total');
+            if (elPaidTot) elPaidTot.textContent = formatBRL(totals.totalPago);
+
+            var elUnpaidTot = document.getElementById('tf-unpaid-total');
+            if (elUnpaidTot) elUnpaidTot.textContent = formatBRL(totals.totalFaltaPagar);
+
+            document.getElementById('tf-rec-total').textContent = formatBRL(totals.totalReceita);
+            var sobTotEl = document.getElementById('tf-sob-total');
+            sobTotEl.textContent = formatBRL(totals.totalSobra);
+            sobTotEl.className = totals.totalSobra < 0 ? "p-3 text-right bg-slate-950 font-extrabold text-rose-400 border-l border-slate-700" : "p-3 text-right bg-slate-950 font-extrabold text-brand-300 border-l border-slate-700";
+
+            // Update top cards in Matriz Mensal
+            var cardDesp = document.getElementById('tabSumDespesa');
+            if (cardDesp) cardDesp.textContent = formatBRL(totals.totalDespesa);
+            
+            var cardPago = document.getElementById('tabSumPago');
+            if (cardPago) {
+                var pctPago = totals.totalDespesa > 0 ? ((totals.totalPago / totals.totalDespesa) * 100).toFixed(1) : '0';
+                cardPago.innerHTML = formatBRL(totals.totalPago) + ' <span class="text-xs font-normal text-emerald-400/80">(' + pctPago + '%)</span>';
+            }
+            
+            var cardFalta = document.getElementById('tabSumFalta');
+            if (cardFalta) {
+                var pctFalta = totals.totalDespesa > 0 ? ((totals.totalFaltaPagar / totals.totalDespesa) * 100).toFixed(1) : '0';
+                cardFalta.innerHTML = formatBRL(totals.totalFaltaPagar) + ' <span class="text-xs font-normal text-rose-400/80">(' + pctFalta + '%)</span>';
+            }
+        }
+
+        function updateCellExpense(expIdx, monthIdx, value) {
+            var val = parseMoneyInput(value);
+            financialData[currentYear].expenses[expIdx].values[monthIdx] = val;
+            saveDatabase();
+            renderAll();
+        }
+
+        function deleteExpenseRow(expIdx) {
+            var exp = (financialData[currentYear].expenses || [])[expIdx];
+            var name = exp ? exp.name : 'esta conta';
+            if (confirm("Deseja realmente excluir " + name + "?")) {
+                financialData[currentYear].expenses.splice(expIdx, 1);
+                saveDatabase();
+                renderAll();
+            }
+        }
+
+        function openAddAccountModal() {
+            editingExpenseId = null;
+            document.getElementById('accountModalTitle').textContent = 'Adicionar Nova Conta / Despesa';
+            document.getElementById('accountSubmitButton').textContent = 'Salvar Conta';
+            document.getElementById('formAccount').reset();
+            var dayInput = document.getElementById('accDueDay');
+            if (dayInput) dayInput.value = '10';
+            for (var i = 0; i < 12; i++) {
+                document.getElementById('accMonth_' + i).value = formatBRL(0);
+            }
+            document.getElementById('modalAccount').classList.remove('hidden');
+        }
+
+        function editExpenseRow(idx) {
+            var data = financialData[currentYear] || {};
+            var exp = (data.expenses || [])[idx];
+            if (!exp) return;
+            
+            editingExpenseId = exp.id || ('exp_' + idx);
+            document.getElementById('accountModalTitle').textContent = 'Editar Conta / Despesa';
+            document.getElementById('accountSubmitButton').textContent = 'Salvar Alterações';
+            
+            document.getElementById('accName').value = exp.name || '';
+            document.getElementById('accCategory').value = exp.category || 'Outros';
+            var dayInput = document.getElementById('accDueDay');
+            if (dayInput) dayInput.value = getExpenseDueDay(exp) || 10;
+            if (document.getElementById('accDueDate')) document.getElementById('accDueDate').value = exp.dueDate || '';
+            
+            for (var i = 0; i < 12; i++) {
+                var val = (exp.values && exp.values[i]) ? Number(exp.values[i]) : 0;
+                document.getElementById('accMonth_' + i).value = formatBRL(val);
+            }
+            
+            closeModal('modalManageAccounts');
+            document.getElementById('modalAccount').classList.remove('hidden');
+        }
+
+        function saveAccountForm(e) {
+            e.preventDefault();
+            var name = document.getElementById('accName').value.trim();
+            var category = document.getElementById('accCategory').value;
+            var dayInput = document.getElementById('accDueDay');
+            var dueDay = dayInput ? parseInt(dayInput.value, 10) : 10;
+            if (isNaN(dueDay) || dueDay < 1 || dueDay > 31) dueDay = 10;
+            var dueDate = String(dueDay);
+
+            var values = [];
+            for (var i = 0; i < 12; i++) {
+                values.push(parseMoneyInput(document.getElementById('accMonth_' + i).value));
+            }
+            if (!financialData[currentYear].expenses) financialData[currentYear].expenses = [];
+            
+            if (editingExpenseId) {
+                var found = false;
+                for (var j = 0; j < financialData[currentYear].expenses.length; j++) {
+                    if (financialData[currentYear].expenses[j].id === editingExpenseId) {
+                        financialData[currentYear].expenses[j].name = name;
+                        financialData[currentYear].expenses[j].category = category;
+                        financialData[currentYear].expenses[j].dueDay = dueDay;
+                        financialData[currentYear].expenses[j].dueDate = dueDate;
+                        financialData[currentYear].expenses[j].values = values;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    financialData[currentYear].expenses.push({
+                        id: editingExpenseId,
+                        name: name,
+                        category: category,
+                        dueDay: dueDay,
+                        dueDate: dueDate,
+                        paidMonths: new Array(12).fill(false),
+                        values: values
+                    });
+                }
+            } else {
+                financialData[currentYear].expenses.push({
+                    id: 'exp_' + Date.now(),
+                    name: name,
+                    category: category,
+                    dueDay: dueDay,
+                    dueDate: dueDate,
+                    paidMonths: new Array(12).fill(false),
+                    values: values
+                });
+            }
+            
+            editingExpenseId = null;
+            saveDatabase();
+            closeModal('modalAccount');
+            renderAll();
+        }
+
+        function openManageAccountsModal() {
+            var manageSpan = document.getElementById('manageYearSpan');
+            if (manageSpan) manageSpan.textContent = currentYear;
+            var list = document.getElementById('manageAccountsList');
+            if (!list) return;
+            list.innerHTML = '';
+            var dataYear = financialData[currentYear] || {};
+            var exps = dataYear.expenses || [];
+            if (exps.length === 0) {
+                list.innerHTML = '<p class="text-xs text-slate-400 italic p-4 text-center">Nenhuma conta cadastrada para este ano.</p>';
+            } else {
+                exps.forEach(function(e, idx) {
+                    var sum = (e.values || []).reduce(function(a,v){ return a + (Number(v)||0); }, 0);
+                    var div = document.createElement('div');
+                    div.className = 'flex flex-wrap items-center justify-between gap-2 bg-slate-900/90 p-3 rounded-lg border border-slate-700';
+                    var dueText = e.dueDate ? (' · Venc. dia ' + escapeHtml(e.dueDate.split('-').reverse().join('/'))) : '';
+                    div.innerHTML = 
+                        '<div class="min-w-0 flex-1">' +
+                            '<p class="text-sm font-semibold text-slate-100">' + escapeHtml(e.name || 'Conta sem nome') + '</p>' +
+                            '<p class="text-[11px] text-slate-400">' + escapeHtml(e.category || 'Outros') + ' · ' + formatBRL(sum) + ' no ano' + dueText + '</p>' +
+                        '</div>' +
+                        '<div class="flex items-center gap-1.5">' +
+                            '<button type="button" onclick="editExpenseRow(' + idx + ')" class="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-2.5 py-1.5 rounded-md flex items-center gap-1"><i class="fa-solid fa-pen text-[10px]"></i> Editar</button>' +
+                            '<button type="button" onclick="deleteExpenseRow(' + idx + '); openManageAccountsModal();" class="bg-rose-700 hover:bg-rose-600 text-white text-xs font-semibold px-2.5 py-1.5 rounded-md flex items-center gap-1"><i class="fa-solid fa-trash text-[10px]"></i> Excluir</button>' +
+                        '</div>';
+                    list.appendChild(div);
+                });
+            }
+            document.getElementById('modalManageAccounts').classList.remove('hidden');
+        }
+
+        function editReceitasModal() {
+            var data = financialData[currentYear] || {};
+            var container = document.getElementById('revenueSourcesList');
+            container.innerHTML = '';
+            var sources = data.revenueSources || [];
+            if (sources.length === 0) {
+                addRevenueSource('Fixa');
+            } else {
+                sources.forEach(function(src) { renderRevenueSourceItem(src); });
+            }
+            document.getElementById('modalReceitas').classList.remove('hidden');
+        }
+
+        function addRevenueSource(type) {
+            var src = {
+                id: 'rev_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                name: type === 'Fixa' ? 'Salário' : 'Renda Extra',
+                type: type,
+                values: new Array(12).fill(0)
+            };
+            renderRevenueSourceItem(src);
+        }
+
+        function renderRevenueSourceItem(src) {
+            var container = document.getElementById('revenueSourcesList');
+            var div = document.createElement('div');
+            div.className = 'bg-slate-900/80 p-3 rounded-xl border border-slate-700 space-y-3';
+            div.dataset.srcId = src.id;
+
+            var monthsInputs = '';
+            monthsShort.forEach(function(m, i) {
+                var val = (src.values && src.values[i]) ? src.values[i] : 0;
+                monthsInputs += '<div><label class="text-[10px] text-slate-400 block">' + m + '</label><input type="text" inputmode="decimal" value="' + formatBRL(val) + '" onfocus="unformatMoneyInput(this)" onblur="formatMoneyInput(this)" class="rev-val-' + i + ' money-input w-full bg-slate-800 border border-slate-700 rounded p-1 text-white text-right text-xs"></div>';
+            });
+
+            div.innerHTML = '<div class="flex items-center gap-2 justify-between"><input type="text" value="' + escapeHtml(src.name) + '" class="rev-name-input bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white font-semibold flex-1 text-xs" placeholder="Nome da Receita"><select class="rev-type-select bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white text-xs"><option value="Fixa"' + (src.type==='Fixa'?' selected':'') + '>Fixa</option><option value="Variável"' + (src.type==='Variável'?' selected':'') + '>Variável</option></select><button type="button" onclick="this.closest(\'div.bg-slate-900\\\\/80\').remove()" class="text-rose-400 hover:text-rose-300 p-1" title="Excluir receita"><i class="fa-solid fa-trash"></i></button></div><div class="grid grid-cols-3 sm:grid-cols-4 gap-2">' + monthsInputs + '</div>';
+            container.appendChild(div);
+        }
+
+        function saveReceitasForm(e) {
+            e.preventDefault();
+            var container = document.getElementById('revenueSourcesList');
+            var items = container.querySelectorAll('div.bg-slate-900\\/80');
+            var newSources = [];
+            items.forEach(function(item) {
+                var name = item.querySelector('.rev-name-input').value.trim() || 'Receita';
+                var type = item.querySelector('.rev-type-select').value;
+                var id = item.dataset.srcId || ('rev_' + Date.now());
+                var values = [];
+                for (var i = 0; i < 12; i++) {
+                    values.push(parseMoneyInput(item.querySelector('.rev-val-' + i).value));
+                }
+                newSources.push({ id: id, name: name, type: type, values: values });
+            });
+            financialData[currentYear].revenueSources = newSources;
+            saveDatabase();
+            closeModal('modalReceitas');
+            renderAll();
+        }
+
+        function renderDiagnosis() {
+            var totals = getYearTotals(currentYear);
+            var expList = totals.expenses;
+            
+            var empTotal = 0, empItems = [];
+            expList.filter(function(e) { return e.category === 'Empréstimos'; }).forEach(function(e) {
+                var sum = (e.values || []).reduce(function(a,b){ return a + (Number(b)||0); }, 0);
+                empTotal += sum;
+                if (sum > 0) empItems.push('• ' + escapeHtml(e.name) + ': ' + formatBRL(sum) + '/ano');
+            });
+            var empEl = document.getElementById('diagEmpTotal');
+            if (empEl) empEl.textContent = formatBRL(empTotal);
+            var empDet = document.getElementById('diagEmpDetail');
+            if (empDet) empDet.innerHTML = empItems.length > 0 ? empItems.join('<br>') : 'Nenhum empréstimo cadastrado.';
+
+            var cardTotal = 0, cardItems = [];
+            expList.filter(function(e) { return e.category === 'Cartões/Bancos'; }).forEach(function(e) {
+                var sum = (e.values || []).reduce(function(a,b){ return a + (Number(b)||0); }, 0);
+                cardTotal += sum;
+                if (sum > 0) cardItems.push('• ' + escapeHtml(e.name) + ': ' + formatBRL(sum) + '/ano');
+            });
+            var cardEl = document.getElementById('diagCardsTotal');
+            if (cardEl) cardEl.textContent = formatBRL(cardTotal);
+            var cardDet = document.getElementById('diagCardsDetail');
+            if (cardDet) cardDet.innerHTML = cardItems.length > 0 ? cardItems.join('<br>') : 'Nenhum cartão cadastrado.';
+
+            var hrvTotal = 0, hrvItems = [];
+            expList.filter(function(e) { 
+                var n = (e.name || '').toLowerCase(); 
+                return e.category === 'Veículo' || n.indexOf('hrv') >= 0 || n.indexOf('ipva') >= 0; 
+            }).forEach(function(e) {
+                var sum = (e.values || []).reduce(function(a,b){ return a + (Number(b)||0); }, 0);
+                hrvTotal += sum;
+                if (sum > 0) hrvItems.push('• ' + escapeHtml(e.name) + ': ' + formatBRL(sum) + '/ano');
+            });
+            var hrvEl = document.getElementById('diagHrvTotal');
+            if (hrvEl) hrvEl.textContent = formatBRL(hrvTotal);
+            var hrvDet = document.getElementById('diagHrvDetail');
+            if (hrvDet) hrvDet.innerHTML = hrvItems.length > 0 ? hrvItems.join('<br>') : 'Sem custos veiculares mapeados.';
+
+            var quitList = document.getElementById('quitacoesList');
+            if (quitList) {
+                quitList.innerHTML = '';
+                expList.forEach(function(e) {
+                    var lastNonZero = -1;
+                    for (var i = 0; i < 12; i++) {
+                        if (Number(e.values[i]) > 0) lastNonZero = i;
+                    }
+                    if (lastNonZero >= 0 && lastNonZero < 11) {
+                        var mName = monthsShort[lastNonZero];
+                        var valFree = e.values[lastNonZero];
+                        var div = document.createElement('div');
+                        div.className = "bg-slate-900/80 border border-emerald-500/30 p-3 rounded-lg flex items-center justify-between";
+                        div.innerHTML = 
+                            '<div>' +
+                                '<span class="font-bold text-white text-xs">' + escapeHtml(e.name) + '</span>' +
+                                '<p class="text-[11px] text-slate-400">Última parcela em: <strong class="text-emerald-400">' + mName + '</strong></p>' +
+                            '</div>' +
+                            '<div class="text-right">' +
+                                '<span class="text-xs font-bold text-emerald-400">+ ' + formatBRL(valFree) + '/mês</span>' +
+                                '<span class="block text-[10px] text-slate-400">de alívio no fluxo</span>' +
+                            '</div>';
+                        quitList.appendChild(div);
+                    }
+                });
+                if (quitList.children.length === 0) {
+                    quitList.innerHTML = '<p class="text-xs text-slate-400 italic col-span-full">Nenhuma conta com término de parcelas identificado antes do fim do ano.</p>';
+                }
+            }
+
+            var pctComp = totals.totalReceita > 0 ? Math.round((totals.totalDespesa / totals.totalReceita) * 100) : 0;
+            var reportEl = document.getElementById('diagnosticReportText');
+            if (reportEl) {
+                var analiseStatus = totals.totalSobra < 0 
+                    ? '<p class="text-rose-400 font-semibold"><i class="fa-solid fa-circle-exclamation mr-1"></i> <strong>Atenção: Você está operando no vermelho neste ano!</strong> Déficit acumulado previsto de ' + formatBRL(Math.abs(totals.totalSobra)) + '.</p>'
+                    : '<p class="text-emerald-400 font-semibold"><i class="fa-solid fa-circle-check mr-1"></i> Orçamento sob controle: Sobra anual estimada em ' + formatBRL(totals.totalSobra) + '.</p>';
+                
+                reportEl.innerHTML = 
+                    analiseStatus +
+                    '<p><strong>1. Causa Raiz do Gargalo:</strong> Seu comprometimento de renda está em <strong class="' + (pctComp > 80 ? 'text-rose-400' : 'text-amber-400') + '">' + pctComp + '%</strong>. ' +
+                    'As maiores sangrias de caixa são <strong>Bancos e Cartões (' + formatBRL(cardTotal) + ')</strong> e <strong>Contratos de Empréstimos (' + formatBRL(empTotal) + ')</strong>.</p>' +
+                    '<p><strong>2. Estratégia Prática para Sair do Vermelho:</strong> ' +
+                    'À medida que as parcelas forem quitadas (observe a lista de alívio acima), <strong>não eleve seu padrão de consumo nem contraia novas faturas de cartão</strong>. Destine 100% dessa folga mensal para antecipar quitações de dívidas caras e constituir sua reserva de emergência.</p>';
+            }
+
+            var badge = document.getElementById('badgeDiagnosis');
+            if (badge) {
+                if (totals.totalSobra < 0 || pctComp > 75) badge.classList.remove('hidden');
+                else badge.classList.add('hidden');
+            }
+        }
+
+        function renderPlanner() {
+            var totals = getYearTotals(currentYear);
+            var totalRec = totals.totalReceita || 1;
+
+            var catFixa = 0, catVariavel = 0;
+            totals.expenses.forEach(function(e) {
+                var sum = (e.values || []).reduce(function(a,b){ return a + (Number(b)||0); }, 0);
+                if (e.category === 'Custo Fixo' || e.category === 'Veículo') catFixa += sum;
+                else catVariavel += sum;
+            });
+
+            var pctFixa = Math.min(100, Math.round((catFixa / totalRec) * 100));
+            var pctVar = Math.min(100, Math.round((catVariavel / totalRec) * 100));
+            var pctPoup = Math.max(0, Math.round((totals.totalSobra / totalRec) * 100));
+
+            if (document.getElementById('p50Current')) document.getElementById('p50Current').textContent = pctFixa + '%';
+            if (document.getElementById('p50Bar')) document.getElementById('p50Bar').style.width = pctFixa + '%';
+
+            if (document.getElementById('p30Current')) document.getElementById('p30Current').textContent = pctVar + '%';
+            if (document.getElementById('p30Bar')) document.getElementById('p30Bar').style.width = pctVar + '%';
+
+            if (document.getElementById('p20Current')) document.getElementById('p20Current').textContent = pctPoup + '%';
+            if (document.getElementById('p20Bar')) document.getElementById('p20Bar').style.width = pctPoup + '%';
+
+            var mediaCustoMensal = totals.totalDespesa / 12;
+            if (document.getElementById('reservaCustoMensal')) document.getElementById('reservaCustoMensal').textContent = formatBRL(mediaCustoMensal);
+            if (document.getElementById('reserva3Meses')) document.getElementById('reserva3Meses').textContent = formatBRL(mediaCustoMensal * 3);
+            if (document.getElementById('reserva6Meses')) document.getElementById('reserva6Meses').textContent = formatBRL(mediaCustoMensal * 6);
+            if (document.getElementById('reserva12Meses')) document.getElementById('reserva12Meses').textContent = formatBRL(mediaCustoMensal * 12);
+
+            calculateSimulation();
+        }
+
+        function calculateSimulation() {
+            var totals = getYearTotals(currentYear);
+            var extraSavingsAnnual = 0;
+            var cutCards = document.getElementById('simCardCut') ? document.getElementById('simCardCut').checked : false;
+            var cutFixed = document.getElementById('simFixedCut') ? document.getElementById('simFixedCut').checked : false;
+
+            totals.expenses.forEach(function(e) {
+                var sum = (e.values || []).reduce(function(a,b){ return a + (Number(b)||0); }, 0);
+                if (cutCards && e.category === 'Cartões/Bancos') extraSavingsAnnual += sum * 0.15;
+                if (cutFixed && e.category === 'Custo Fixo') extraSavingsAnnual += sum * 0.10;
+            });
+
+            var newTotalAnnualSobra = totals.totalSobra + extraSavingsAnnual;
+            var savingsEl = document.getElementById('simulatedAnnualSavings');
+            if (savingsEl) {
+                savingsEl.textContent = formatBRL(newTotalAnnualSobra);
+                savingsEl.className = newTotalAnnualSobra < 0 ? "text-2xl font-extrabold text-rose-500 mt-1" : "text-2xl font-extrabold text-emerald-400 mt-1";
+            }
+        }
+
+        // --- SISTEMA DE EXPORTAÇÃO E BACKUP ---
+        function downloadFile(content, fileName, mimeType) {
+            var blob = new Blob([content], { type: mimeType });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+        }
+
+        function exportToExcel() {
+            var totals = getYearTotals(currentYear);
+            var wb = XLSX.utils.book_new();
+
+            // 1. Aba de Despesas
+            var expRows = [["Conta", "Categoria", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez", "Total Anual"]];
+            totals.expenses.forEach(function(e) {
+                var totalRow = (e.values || []).reduce(function(a,b){ return a + (Number(b)||0); }, 0);
+                expRows.push([e.name, e.category || 'Outros'].concat(e.values).concat([totalRow]));
+            });
+            var wsExp = XLSX.utils.aoa_to_sheet(expRows);
+            wsExp['!cols'] = [{ wch: 30 }, { wch: 18 }].concat(Array(12).fill({ wch: 13 })).concat([{ wch: 16 }]);
+            XLSX.utils.book_append_sheet(wb, wsExp, "Despesas");
+
+            // 2. Aba de Receitas
+            var revRows = [["Fonte de Receita", "Tipo", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez", "Total Anual"]];
+            (totals.revenueSources || []).forEach(function(src) {
+                var totalRow = (src.values || []).reduce(function(a,b){ return a + (Number(b)||0); }, 0);
+                revRows.push([src.name, src.type || 'Fixa'].concat(src.values).concat([totalRow]));
+            });
+            var wsRev = XLSX.utils.aoa_to_sheet(revRows);
+            wsRev['!cols'] = [{ wch: 30 }, { wch: 15 }].concat(Array(12).fill({ wch: 13 })).concat([{ wch: 16 }]);
+            XLSX.utils.book_append_sheet(wb, wsRev, "Receitas");
+
+            // 3. Aba de Resumo do Fluxo de Caixa
+            var resRows = [
+                ["Item / Mês", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez", "Total Anual"],
+                ["Receita Total"].concat(totals.monthlyReceitas).concat([totals.totalReceita]),
+                ["Total Despesas"].concat(totals.monthlyDespesas).concat([totals.totalDespesa]),
+                ["Despesas Já Pagas"].concat(totals.monthlyPagas).concat([totals.totalPago]),
+                ["Despesas a Pagar"].concat(totals.monthlyFaltaPagar).concat([totals.totalFaltaPagar]),
+                ["Sobra Mensal"].concat(totals.monthlySobras).concat([totals.totalSobra])
+            ];
+            var wsRes = XLSX.utils.aoa_to_sheet(resRows);
+            wsRes['!cols'] = [{ wch: 22 }].concat(Array(12).fill({ wch: 13 })).concat([{ wch: 16 }]);
+            XLSX.utils.book_append_sheet(wb, wsRes, "Resumo_Fluxo");
+
+            XLSX.writeFile(wb, 'Controle_Financeiro_' + currentYear + '.xlsx');
+        }
+
+        function exportCsv(type) {
+            var totals = getYearTotals(currentYear);
+            var BOM = "\uFEFF";
+
+            if (type === 'despesas' || type === 'ambos') {
+                var csvExp = BOM + "Conta;Categoria;Jan;Fev;Mar;Abr;Mai;Jun;Jul;Ago;Set;Out;Nov;Dez;Total Anual\r\n";
+                totals.expenses.forEach(function(e) {
+                    var sum = (e.values || []).reduce(function(a,b){ return a + (Number(b)||0); }, 0);
+                    var row = [
+                        '"' + (e.name || '').replace(/"/g, '""') + '"',
+                        '"' + (e.category || 'Outros').replace(/"/g, '""') + '"'
+                    ];
+                    for (var m = 0; m < 12; m++) {
+                        row.push((Number((e.values || [])[m]) || 0).toFixed(2).replace('.', ','));
+                    }
+                    row.push(sum.toFixed(2).replace('.', ','));
+                    csvExp += row.join(';') + "\r\n";
+                });
+                downloadFile(csvExp, 'Despesas_' + currentYear + '.csv', 'text/csv;charset=utf-8;');
+            }
+
+            if (type === 'receitas' || type === 'ambos') {
+                var delay = (type === 'ambos') ? 400 : 0;
+                setTimeout(function() {
+                    var csvRev = BOM + "Fonte de Receita;Tipo;Jan;Fev;Mar;Abr;Mai;Jun;Jul;Ago;Set;Out;Nov;Dez;Total Anual\r\n";
+                    (totals.revenueSources || []).forEach(function(src) {
+                        var sum = (src.values || []).reduce(function(a,b){ return a + (Number(b)||0); }, 0);
+                        var row = [
+                            '"' + (src.name || '').replace(/"/g, '""') + '"',
+                            '"' + (src.type || 'Fixa').replace(/"/g, '""') + '"'
+                        ];
+                        for (var m = 0; m < 12; m++) {
+                            row.push((Number((src.values || [])[m]) || 0).toFixed(2).replace('.', ','));
+                        }
+                        row.push(sum.toFixed(2).replace('.', ','));
+                        csvRev += row.join(';') + "\r\n";
+                    });
+                    downloadFile(csvRev, 'Receitas_' + currentYear + '.csv', 'text/csv;charset=utf-8;');
+                }, delay);
+            }
+        }
+
+        function exportJsonBackup() {
+            var backupData = {
+                app: "Finanças Wellington Felix Martins",
+                developer: "Wellington Felix Martins (Java Developer)",
+                version: "9.0",
+                exportDate: new Date().toISOString(),
+                currentYear: currentYear,
+                financialData: financialData
+            };
+            var jsonString = JSON.stringify(backupData, null, 2);
+            downloadFile(jsonString, 'Backup_Financeiro_Completo_' + currentYear + '.json', 'application/json');
+        }
+
+        // --- SISTEMA DE IMPORTAÇÃO UNIVERSAL E SEPARADO ---
+        function readFileAsText(file) {
+            return new Promise(function(resolve, reject) {
+                var reader = new FileReader();
+                reader.onload = function(e) { resolve(e.target.result); };
+                reader.onerror = function(err) { reject(err); };
+                reader.readAsText(file, 'utf-8');
+            });
+        }
+
+        function readFileAsArrayBuffer(file) {
+            return new Promise(function(resolve, reject) {
+                var reader = new FileReader();
+                reader.onload = function(e) { resolve(e.target.result); };
+                reader.onerror = function(err) { reject(err); };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        function parseCsvText(text) {
+            if (!text) return [];
+            var lines = text.split(/\r\n|\n|\r/);
+            if (!lines.length) return [];
+            var firstLine = lines[0];
+            var delim = (firstLine.indexOf(';') >= 0) ? ';' : ',';
+
+            var rows = [];
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i].trim();
+                if (!line) continue;
+                var row = [];
+                var inQuotes = false;
+                var cur = '';
+                for (var c = 0; c < line.length; c++) {
+                    var ch = line[c];
+                    if (ch === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (ch === delim && !inQuotes) {
+                        row.push(cur.replace(/^"|"$/g, '').trim());
+                        cur = '';
+                    } else {
+                        cur += ch;
+                    }
+                }
+                row.push(cur.replace(/^"|"$/g, '').trim());
+                rows.push(row);
+            }
+            return rows;
+        }
+
+        function parseExpensesFromSheet(rows) {
+            var expenses = [];
+            if (!rows || rows.length < 2) return expenses;
+            for (var i = 1; i < rows.length; i++) {
+                var row = rows[i];
+                if (!row || !row[0]) continue;
+                var title = String(row[0]).trim();
+                var upper = title.toUpperCase();
+                if (upper === 'CONTA' || upper === 'CONTA / CATEGORIA' || upper.indexOf('TOTAL') === 0 || upper.indexOf('SOBRA') === 0) continue;
+
+                var category = (row[1] && typeof row[1] === 'string' && /[a-zA-Z]/.test(row[1])) ? String(row[1]).trim() : 'Outros';
+                var colOffset = (category !== 'Outros' || (row[1] && /[a-zA-Z]/.test(row[1]))) ? 2 : 1;
+
+                if (category === 'Outros' && title.indexOf('(') >= 0 && title.indexOf(')') >= 0) {
+                    var mExp = title.match(/^(.*?)\s*\((.*?)\)$/);
+                    if (mExp) {
+                        title = mExp[1].trim();
+                        category = mExp[2].trim();
+                    }
+                }
+
+                var vals = [];
+                for (var m = 0; m < 12; m++) {
+                    vals.push(parseMoneyValue(row[colOffset + m]));
+                }
+
+                var lowerExp = (title || '').toLowerCase();
+                var defaultDueDays = {
+                    'bradesco': 10, 'escola': 5, 'água': 15, 'agua': 15, 'luz enel': 20, 'enel': 20,
+                    'ipva': 10, 'sylvia': 15, 'mercado pago': 12, 'santander': 15, 'convênio': 25,
+                    'convenio': 25, 'inter': 20, 'consignado': 5, 'c&a': 8, 'hrv': 15
+                };
+                var dDay = 10;
+                for (var k in defaultDueDays) {
+                    if (lowerExp.indexOf(k) >= 0) { dDay = defaultDueDays[k]; break; }
+                }
+
+                expenses.push({
+                    id: 'exp_' + Date.now() + '_' + i,
+                    name: title,
+                    category: category,
+                    dueDay: dDay,
+                    dueDate: String(dDay),
+                    paidMonths: new Array(12).fill(false),
+                    values: vals
+                });
+            }
+            return expenses;
+        }
+
+        function parseRevenuesFromSheet(rows) {
+            var revenues = [];
+            if (!rows || rows.length < 2) return revenues;
+            for (var i = 1; i < rows.length; i++) {
+                var row = rows[i];
+                if (!row || !row[0]) continue;
+                var title = String(row[0]).trim();
+                var upper = title.toUpperCase();
+                if (upper === 'FONTE DE RECEITA' || upper === 'RECEITA' || upper.indexOf('TOTAL') === 0 || upper.indexOf('SOBRA') === 0) continue;
+
+                var type = (row[1] && String(row[1]).toUpperCase().indexOf('VARI') >= 0) ? 'Variável' : 'Fixa';
+                var colOffset = 2;
+                if (typeof row[1] === 'number' || (row[1] && !/[a-zA-Z]/.test(row[1]))) {
+                    colOffset = 1;
+                }
+
+                var vals = [];
+                for (var m = 0; m < 12; m++) {
+                    vals.push(parseMoneyValue(row[colOffset + m]));
+                }
+
+                revenues.push({
+                    id: 'rev_' + Date.now() + '_' + i,
+                    name: title,
+                    type: type,
+                    values: vals
+                });
+            }
+            return revenues;
+        }
+
+        function parseUnifiedSheet(rows) {
+            var expenses = [];
+            var revenues = [];
+            if (!rows || rows.length < 2) return { expenses: expenses, revenues: revenues };
+
+            for (var i = 1; i < rows.length; i++) {
+                var row = rows[i];
+                if (!row || !row[0]) continue;
+
+                var title = String(row[0]).trim();
+                var upper = title.toUpperCase();
+
+                if (upper === 'CONTA / CATEGORIA' || upper === 'CONTA' || upper.indexOf('TOTAL') === 0 || 
+                    upper.indexOf('RECEITA TOTAL') === 0 || upper.indexOf('SOBRA') === 0) {
+                    continue;
+                }
+
+                var isCol1Category = false;
+                var colOffset = 1;
+                if (row.length > 2 && typeof row[1] === 'string' && row[1].trim() !== '') {
+                    var testNum = parseMoneyValue(row[1]);
+                    if (isNaN(testNum) || /[a-zA-Z]/.test(row[1])) {
+                        isCol1Category = true;
+                        colOffset = 2;
+                    }
+                }
+
+                var vals = [];
+                for (var m = 0; m < 12; m++) {
+                    vals.push(parseMoneyValue(row[colOffset + m]));
+                }
+
+                if (upper.indexOf('RECEITA') === 0 || upper.indexOf('SALÁRIO') === 0 || upper.indexOf('SALARIO') === 0) {
+                    var type = upper.indexOf('VARI') >= 0 ? 'Variável' : 'Fixa';
+                    var name = title;
+                    if (title.indexOf(':') >= 0) {
+                        name = title.split(':')[1].trim();
+                    } else {
+                        name = title.replace(/^RECEITA\s*(FIXA|VARI[AÁÀÃÂ]VEL)?\s*/i, '').trim();
+                    }
+                    if (!name) name = 'Receita ' + (revenues.length + 1);
+                    revenues.push({
+                        id: 'rev_' + Date.now() + '_' + i,
+                        name: name,
+                        type: type,
+                        values: vals
+                    });
+                } else {
+                    var expName = title;
+                    var category = 'Outros';
+                    if (isCol1Category) {
+                        category = String(row[1]).trim();
+                    } else if (title.indexOf('(') >= 0 && title.indexOf(')') >= 0) {
+                        var mExp = title.match(/^(.*?)\s*\((.*?)\)$/);
+                        if (mExp) {
+                            expName = mExp[1].trim();
+                            category = mExp[2].trim();
+                        }
+                    }
+                    var lowerExp = (expName || '').toLowerCase();
+                    var defaultDueDays = {
+                        'bradesco': 10, 'escola': 5, 'água': 15, 'agua': 15, 'luz enel': 20, 'enel': 20,
+                        'ipva': 10, 'sylvia': 15, 'mercado pago': 12, 'santander': 15, 'convênio': 25,
+                        'convenio': 25, 'inter': 20, 'consignado': 5, 'c&a': 8, 'hrv': 15
+                    };
+                    var dDay = 10;
+                    for (var k in defaultDueDays) {
+                        if (lowerExp.indexOf(k) >= 0) { dDay = defaultDueDays[k]; break; }
+                    }
+
+                    expenses.push({
+                        id: 'exp_' + Date.now() + '_' + i,
+                        name: expName,
+                        category: category,
+                        dueDay: dDay,
+                        dueDate: String(dDay),
+                        paidMonths: new Array(12).fill(false),
+                        values: vals
+                    });
+                }
+            }
+            return { expenses: expenses, revenues: revenues };
+        }
+
+        async function importDataFiles(event) {
+            var files = Array.from(event.target.files);
+            if (!files || files.length === 0) return;
+
+            var totalExpImported = 0;
+            var totalRevImported = 0;
+            var targetYear = currentYear;
+
+            try {
+                for (var f = 0; f < files.length; f++) {
+                    var file = files[f];
+                    var fName = file.name.toLowerCase();
+
+                    var yearMatch = fName.match(/(20\d\d)/);
+                    if (yearMatch) {
+                        targetYear = parseInt(yearMatch[1], 10);
+                    }
+                    if (!financialData[targetYear]) {
+                        financialData[targetYear] = { expenses: [], revenueSources: [], receitaSalario: new Array(12).fill(0), receitaOutros: new Array(12).fill(0) };
+                    }
+
+                    if (fName.endsWith('.json')) {
+                        var jsonText = await readFileAsText(file);
+                        var parsedJson = JSON.parse(jsonText);
+                        if (parsedJson.financialData) {
+                            financialData = parsedJson.financialData;
+                            if (parsedJson.currentYear && financialData[parsedJson.currentYear]) {
+                                currentYear = parsedJson.currentYear;
+                            }
+                            totalExpImported += (financialData[currentYear].expenses || []).length;
+                            totalRevImported += (financialData[currentYear].revenueSources || []).length;
+                        } else if (parsedJson.expenses || parsedJson.revenueSources) {
+                            if (parsedJson.expenses) financialData[targetYear].expenses = parsedJson.expenses;
+                            if (parsedJson.revenueSources) financialData[targetYear].revenueSources = parsedJson.revenueSources;
+                            totalExpImported += (parsedJson.expenses || []).length;
+                            totalRevImported += (parsedJson.revenueSources || []).length;
+                        }
+                    } else if (fName.endsWith('.xlsx') || fName.endsWith('.xls')) {
+                        var buffer = await readFileAsArrayBuffer(file);
+                        var workbook = XLSX.read(new Uint8Array(buffer), { type: 'array' });
+
+                        var despesasSheet = workbook.SheetNames.find(function(s) { 
+                            var sn = s.toLowerCase(); 
+                            return sn.indexOf('despesa') >= 0 || sn.indexOf('conta') >= 0; 
+                        });
+                        var receitasSheet = workbook.SheetNames.find(function(s) { 
+                            var sn = s.toLowerCase(); 
+                            return sn.indexOf('receita') >= 0; 
+                        });
+
+                        if (despesasSheet || receitasSheet) {
+                            if (despesasSheet) {
+                                var jsonExp = XLSX.utils.sheet_to_json(workbook.Sheets[despesasSheet], { header: 1 });
+                                var expList = parseExpensesFromSheet(jsonExp);
+                                if (expList.length > 0) {
+                                    financialData[targetYear].expenses = expList;
+                                    totalExpImported += expList.length;
+                                }
+                            }
+                            if (receitasSheet) {
+                                var jsonRev = XLSX.utils.sheet_to_json(workbook.Sheets[receitasSheet], { header: 1 });
+                                var revList = parseRevenuesFromSheet(jsonRev);
+                                if (revList.length > 0) {
+                                    financialData[targetYear].revenueSources = revList;
+                                    totalRevImported += revList.length;
+                                }
+                            }
+                        } else {
+                            var firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                            var jsonUnified = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                            var unifiedRes = parseUnifiedSheet(jsonUnified);
+                            if (unifiedRes.expenses.length > 0) {
+                                financialData[targetYear].expenses = unifiedRes.expenses;
+                                totalExpImported += unifiedRes.expenses.length;
+                            }
+                            if (unifiedRes.revenues.length > 0) {
+                                financialData[targetYear].revenueSources = unifiedRes.revenues;
+                                totalRevImported += unifiedRes.revenues.length;
+                            }
+                        }
+                    } else if (fName.endsWith('.csv')) {
+                        var csvText = await readFileAsText(file);
+                        var csvRows = parseCsvText(csvText);
+
+                        if (fName.indexOf('receita') >= 0) {
+                            var revListCsv = parseRevenuesFromSheet(csvRows);
+                            if (revListCsv.length > 0) {
+                                financialData[targetYear].revenueSources = revListCsv;
+                                totalRevImported += revListCsv.length;
+                            }
+                        } else if (fName.indexOf('despesa') >= 0 || fName.indexOf('conta') >= 0) {
+                            var expListCsv = parseExpensesFromSheet(csvRows);
+                            if (expListCsv.length > 0) {
+                                financialData[targetYear].expenses = expListCsv;
+                                totalExpImported += expListCsv.length;
+                            }
+                        } else {
+                            var unifiedCsvRes = parseUnifiedSheet(csvRows);
+                            if (unifiedCsvRes.expenses.length > 0) {
+                                financialData[targetYear].expenses = unifiedCsvRes.expenses;
+                                totalExpImported += unifiedCsvRes.expenses.length;
+                            }
+                            if (unifiedCsvRes.revenues.length > 0) {
+                                financialData[targetYear].revenueSources = unifiedCsvRes.revenues;
+                                totalRevImported += unifiedCsvRes.revenues.length;
+                            }
+                        }
+                    }
+                }
+
+                currentYear = targetYear;
+                sanitizeDatabase();
+                saveDatabase();
+                populateYearSelect();
+                renderAll();
+
+                var msg = "Backup importado com sucesso para o ano de " + targetYear + "!\n";
+                msg += "• " + totalExpImported + " contas/despesas organizadas na tabela de Contas.\n";
+                msg += "• " + totalRevImported + " fontes de receitas organizadas na tabela de Receitas.\n";
+                msg += "Nenhum dado misturado!";
+                alert(msg);
+            } catch (err) {
+                console.error(err);
+                alert("Ocorreu um erro ao importar os arquivos: " + err.message);
+            } finally {
+                event.target.value = '';
+            }
+        }
+    </script>
+</body>
+</html>
