@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual do Usuário • Sistema Financeiro Wellington Felix Martins</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#035485',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                            950: '#082f49'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: #fff !important; color: #000 !important; }
+            .print-card { border: 1px solid #ccc !important; background: #fafafa !important; color: #111 !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-full flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- CABEÇALHO DO MANUAL -->
+    <header class="bg-slate-800/95 backdrop-blur border-b border-slate-700/80 sticky top-0 z-50 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl overflow-hidden bg-slate-900 border border-slate-700 p-0.5 shadow-md">
+                    <img src="logo_wellington.svg" alt="Logo Wellington" class="w-full h-full object-contain">
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-base text-white">Manual Oficial do Sistema</span>
+                        <span class="text-[10px] font-semibold px-2 py-0.5 bg-slate-800 text-amber-400 border border-amber-500/40 rounded-full flex items-center gap-1">
+                            <i class="fa-brands fa-java text-xs"></i> Java Dev
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-400">Desenvolvido por <strong>Wellington Felix Martins</strong></p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button onclick="window.print()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 transition" title="Imprimir ou Salvar em PDF">
+                    <i class="fa-solid fa-print"></i>
+                    <span class="hidden sm:inline">Imprimir / PDF</span>
+                </button>
+                <a href="Financeiro_v9.html" class="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition shadow-sm">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Voltar ao Sistema</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- BANNER HERO -->
+    <div class="bg-gradient-to-b from-slate-800/80 via-slate-900 to-slate-900 border-b border-slate-800 py-10 px-4">
+        <div class="max-w-4xl mx-auto text-center space-y-4">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-400 text-xs font-semibold">
+                <i class="fa-solid fa-book-bookmark"></i> Documentação Completa do Sistema
+            </div>
+            <h1 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+                Guia Operacional dos Menus &amp; Recursos
+            </h1>
+            <p class="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
+                Aprenda a utilizar cada uma das quatro abas estratégicas para acompanhar suas contas, dar baixa nos pagamentos, identificar onde o dinheiro está vazando e construir sua reserva de emergência.
+            </p>
+
+            <!-- Barra dos Menus Ilustrativa -->
+            <div class="pt-4 max-w-xl mx-auto">
+                <div class="text-xs text-slate-400 font-semibold mb-2">Visão Geral dos Menus de Navegação:</div>
+                <div class="rounded-xl overflow-hidden border border-slate-700/80 shadow-xl bg-slate-950 p-1">
+                    <img src="manual_assets/mock_menu.svg" alt="Menus de Navegação (Exemplo Fictício)" class="w-full h-auto rounded-lg">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUMÁRIO DE NAVEGAÇÃO RÁPIDA -->
+    <nav class="bg-slate-800/60 border-b border-slate-800 py-3 sticky top-[57px] z-40 backdrop-blur no-print">
+        <div class="max-w-5xl mx-auto px-4 flex items-center justify-center flex-wrap gap-2 sm:gap-4 text-xs font-semibold">
+            <span class="text-slate-400 flex items-center gap-1"><i class="fa-solid fa-list-ul"></i> Navegar:</span>
+            <a href="#menu-dashboard" class="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-brand-300 transition flex items-center gap-1">
+                <i class="fa-solid fa-gauge-high text-brand-400"></i> 1. Dashboard
+            </a>
+            <a href="#menu-matriz" class="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-brand-300 transition flex items-center gap-1">
+                <i class="fa-solid fa-table-cells text-emerald-400"></i> 2. Matriz Mensal
+            </a>
+            <a href="#menu-diagnostico" class="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-brand-300 transition flex items-center gap-1">
+                <i class="fa-solid fa-magnifying-glass-chart text-amber-400"></i> 3. Diagnóstico
+            </a>
+            <a href="#menu-planner" class="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-brand-300 transition flex items-center gap-1">
+                <i class="fa-solid fa-piggy-bank text-rose-400"></i> 4. Plano 50/30/20
+            </a>
+            <a href="#menu-backup" class="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-brand-300 transition flex items-center gap-1">
+                <i class="fa-solid fa-file-excel text-emerald-400"></i> 5. Backups &amp; Excel
+            </a>
+        </div>
+    </nav>
+
+    <!-- CONTEÚDO PRINCIPAL DO MANUAL -->
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-16 flex-1">
+
+        <!-- ==================== MENU 1: DASHBOARD EXECUTIVO ==================== -->
+        <section id="menu-dashboard" class="scroll-mt-28 space-y-6">
+            <div class="flex items-center gap-3 border-b border-slate-700/80 pb-3">
+                <div class="w-9 h-9 rounded-xl bg-brand-500/20 border border-brand-500/40 text-brand-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-gauge-high"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-white">1. Menu: Dashboard Executivo</h2>
+                    <p class="text-xs sm:text-sm text-slate-400">Visão panorâmica anual instantânea, KPIs de saúde financeira e controle mensal de vencimentos.</p>
+                </div>
+            </div>
+
+            <!-- Print Ilustrativo KPIs -->
+            <div class="rounded-xl overflow-hidden border border-slate-700/80 shadow-lg bg-slate-950/70 p-2 space-y-2">
+                <img src="manual_assets/mock_dashboard_kpis.svg" alt="Dashboard Executivo - KPIs e Gráficos (Exemplo Fictício)" class="w-full h-auto rounded-lg">
+                <p class="text-center text-xs text-slate-400 italic">Figura 1.1: Indicadores chaves no topo (Receita, Despesas, Sobra e % Comprometido) e gráficos interativos.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm">
+                <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-4 space-y-2.5">
+                    <h4 class="font-bold text-brand-300 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie"></i> Indicadores Principais (KPIs)
+                    </h4>
+                    <ul class="space-y-1.5 text-slate-300 list-disc list-inside">
+                        <li><strong>Receita Total &amp; Média:</strong> Soma de todas as fontes de renda cadastradas (Fixas e Variáveis) no ano e média/mês.</li>
+                        <li><strong>Despesas Totais &amp; Média:</strong> Total orçado de contas no ano e impacto médio mensal.</li>
+                        <li><strong>Sobra Anual Líquida:</strong> Verde se positiva (sobra dinheiro) ou Vermelho se negativa (déficit financeiro).</li>
+                        <li><strong>Taxa de Comprometimento:</strong> Mostra a porcentagem exata do seu salário consumida por despesas. O ideal é abaixo de 70%.</li>
+                    </ul>
+                </div>
+
+                <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-4 space-y-2.5">
+                    <h4 class="font-bold text-emerald-300 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line"></i> Gráficos Analíticos
+                    </h4>
+                    <ul class="space-y-1.5 text-slate-300 list-disc list-inside">
+                        <li><strong>Evolução Mensal:</strong> Curva comparando mês a mês a entrada (verde) vs saída (vermelho).</li>
+                        <li><strong>Distribuição por Categoria:</strong> Gráfico de rosca dinâmico mostrando para onde o dinheiro está indo (Cartões, Empréstimos, Veículos, Custo Fixo).</li>
+                        <li><strong>Comparativo Multi-Anual:</strong> Compara a evolução histórica e futura entre diferentes anos cadastrados.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Print Ilustrativo Cards de Contas a Vencer -->
+            <div class="bg-slate-800/80 border border-slate-700/80 rounded-xl p-5 space-y-4">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-check text-brand-400"></i> Régua de Vencimentos do Mês Selecionado
+                </h3>
+                <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                    Nesta seção do Dashboard você controla o pagamento mês a mês das contas. É possível filtrar o mês desejado no menu suspenso (ex: Outubro, Novembro) e dar baixa em cada boleto.
+                </p>
+
+                <div class="rounded-xl overflow-hidden border border-slate-700/80 shadow bg-slate-950 p-2">
+                    <img src="manual_assets/mock_dashboard_cards.svg" alt="Cards de Vencimento do Mês (Exemplo Fictício)" class="w-full h-auto rounded-lg">
+                    <p class="text-center text-xs text-slate-400 mt-2 italic">Figura 1.2: Cards individuais de cada conta com status colorido e botão de pagamento rápido.</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                    <div class="p-3 rounded-lg bg-slate-900 border border-emerald-500/30 space-y-1">
+                        <span class="font-bold text-emerald-400 flex items-center gap-1.5"><i class="fa-solid fa-circle-check"></i> Status: Paga</span>
+                        <p class="text-slate-300">A conta já foi quitada. O botão fica verde como "Pago".</p>
+                    </div>
+                    <div class="p-3 rounded-lg bg-slate-900 border border-rose-500/40 space-y-1">
+                        <span class="font-bold text-rose-400 flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> Status: Vencida</span>
+                        <p class="text-slate-300">A data de vencimento passou e ainda não foi paga. Exige prioridade!</p>
+                    </div>
+                    <div class="p-3 rounded-lg bg-slate-900 border border-amber-500/40 space-y-1">
+                        <span class="font-bold text-amber-300 flex items-center gap-1.5"><i class="fa-solid fa-clock"></i> Status: Vence Hoje</span>
+                        <p class="text-slate-300">Vence na data de hoje. Alerta pulsante para pagamento imediato.</p>
+                    </div>
+                    <div class="p-3 rounded-lg bg-slate-900 border border-sky-500/30 space-y-1">
+                        <span class="font-bold text-sky-400 flex items-center gap-1.5"><i class="fa-regular fa-calendar-check"></i> Status: A Vencer</span>
+                        <p class="text-slate-300">A conta está programada no prazo para o dia estipulado.</p>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-brand-950/40 border border-brand-500/30 rounded-lg text-xs text-brand-300 flex items-center gap-2">
+                    <i class="fa-solid fa-lightbulb text-amber-400 text-base shrink-0"></i>
+                    <span><strong>Sincronização Automática:</strong> Ao clicar no botão <strong>"Pagar"</strong> de qualquer card, o sistema dá baixa instantânea tanto no Dashboard quanto na <strong>Matriz Mensal</strong>!</span>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================== MENU 2: MATRIZ MENSAL ==================== -->
+        <section id="menu-matriz" class="scroll-mt-28 space-y-6">
+            <div class="flex items-center gap-3 border-b border-slate-700/80 pb-3">
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-table-cells"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-white">2. Menu: Matriz Mensal</h2>
+                    <p class="text-xs sm:text-sm text-slate-400">Planilha financeira completa de 12 meses, edição de valores e controle de status de pagamento por bolinha colorida.</p>
+                </div>
+            </div>
+
+            <!-- Print Ilustrativo Matriz Mensal -->
+            <div class="rounded-xl overflow-hidden border border-slate-700/80 shadow-lg bg-slate-950/70 p-2 space-y-2">
+                <img src="manual_assets/mock_matriz_mensal.svg" alt="Matriz Mensal de Despesas (Exemplo Fictício)" class="w-full h-auto rounded-lg">
+                <p class="text-center text-xs text-slate-400 italic">Figura 2.1: Tabela interativa com todas as contas nas linhas e os 12 meses do ano nas colunas.</p>
+            </div>
+
+            <div class="space-y-4 text-xs sm:text-sm text-slate-300 leading-relaxed">
+                <p>
+                    A <strong>Matriz Mensal</strong> é a central de operações do sistema. Nela você tem a visão contínua de Janeiro a Dezembro de cada despesa e receita.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-4 space-y-2">
+                        <span class="font-bold text-white text-sm flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-emerald-400"></span> Bolinhas de Status nas Células
+                        </span>
+                        <p class="text-xs text-slate-300">
+                            Ao lado de cada valor digitado existe uma bolinha colorida:
+                            <br>• 🟢 <strong>Verde:</strong> Já Paga
+                            <br>• 🔴 <strong>Vermelha:</strong> Vencida
+                            <br>• 🟠 <strong>Laranja:</strong> Vence Hoje
+                            <br>• 🔵 <strong>Azul:</strong> A Vencer
+                            <br><strong class="text-brand-300">Clique na bolinha para dar baixa ou reabrir na hora!</strong>
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-4 space-y-2">
+                        <span class="font-bold text-white text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-calculator text-amber-400"></i> Resumo "Já Pago" vs "Falta Pagar"
+                        </span>
+                        <p class="text-xs text-slate-300">
+                            Tanto no topo quanto no rodapé da tabela você sabe com precisão cirúrgica:
+                            <br>• <strong>Total Já Pago:</strong> soma dos boletos já quitados.
+                            <br>• <strong>Falta Pagar:</strong> saldo restante que ainda precisará ser desembolsado.
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-4 space-y-2">
+                        <span class="font-bold text-white text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-pen-to-square text-sky-400"></i> Edição Direta &amp; Botões
+                        </span>
+                        <p class="text-xs text-slate-300">
+                            • Clique em qualquer número para editar o valor.
+                            <br>• <strong>Nova Conta:</strong> cadastra um novo boleto/despesa.
+                            <br>• <strong>Gerenciar Contas:</strong> edita dia de vencimento, categoria ou nome.
+                            <br>• <strong>Receitas:</strong> cadastra salários e rendas extras.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================== MENU 3: ONDE ESTOU ERRANDO? ==================== -->
+        <section id="menu-diagnostico" class="scroll-mt-28 space-y-6">
+            <div class="flex items-center gap-3 border-b border-slate-700/80 pb-3">
+                <div class="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-magnifying-glass-chart"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-white">3. Menu: Onde Estou Errando? (Diagnóstico)</h2>
+                    <p class="text-xs sm:text-sm text-slate-400">Análise automática que aponta onde o dinheiro está vazando e quando as dívidas serão quitadas.</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-5 space-y-4 text-xs sm:text-sm">
+                <p class="text-slate-300 leading-relaxed">
+                    Este menu foi desenhado com base em inteligência de dados para responder a uma das maiores angústias financeiras: <strong class="text-rose-400">"Por que trabalho tanto e não sobra dinheiro no final do mês?"</strong>.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-4 rounded-xl bg-slate-900/90 border border-rose-500/40 space-y-2">
+                        <span class="font-bold text-rose-400 uppercase text-xs tracking-wider flex items-center justify-between">
+                            Sangria #1: Empréstimos
+                            <i class="fa-solid fa-building-columns"></i>
+                        </span>
+                        <p class="text-slate-300 text-xs">
+                            Calcula o peso anual exato de contratos de empréstimo pessoal, consignados e renegociações que reduzem sua renda disponível todo mês.
+                        </p>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-900/90 border border-amber-500/40 space-y-2">
+                        <span class="font-bold text-amber-400 uppercase text-xs tracking-wider flex items-center justify-between">
+                            Sangria #2: Bancos &amp; Cartões
+                            <i class="fa-solid fa-credit-card"></i>
+                        </span>
+                        <p class="text-slate-300 text-xs">
+                            Mede o percentual do salário drenado por faturas de cartão de crédito. Se estiver consumindo mais de 30% da sua receita, acende um sinal vermelho.
+                        </p>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-900/90 border border-brand-500/40 space-y-2">
+                        <span class="font-bold text-brand-400 uppercase text-xs tracking-wider flex items-center justify-between">
+                            Sangria #3: Veículos
+                            <i class="fa-solid fa-car"></i>
+                        </span>
+                        <p class="text-slate-300 text-xs">
+                            Soma financiamento, IPVA, seguro, combustível e manutenção. Ajuda a dimensionar o real custo de manter o transporte no ano.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="p-4 rounded-xl bg-emerald-950/30 border border-emerald-500/40 space-y-2">
+                    <h4 class="font-bold text-emerald-300 flex items-center gap-2">
+                        <i class="fa-solid fa-unlock-keyhole"></i> Alívio Financeiro Previsto (Fim de Parcelas)
+                    </h4>
+                    <p class="text-xs text-slate-300">
+                        O sistema varre todas as contas e encontra quando uma prestação termina (por exemplo, uma dívida que vai até Junho e zera em Julho). Ele exibe um card dizendo: <strong class="text-emerald-400">"A partir de Julho, você terá +R$ 440,00 livres por mês!"</strong>. Essa visão dá ânimo e clareza para manter o foco até a quitação.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================== MENU 4: PLANO 50/30/20 & RESERVA ==================== -->
+        <section id="menu-planner" class="scroll-mt-28 space-y-6">
+            <div class="flex items-center gap-3 border-b border-slate-700/80 pb-3">
+                <div class="w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-piggy-bank"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-white">4. Menu: Plano &amp; Reserva de Emergência</h2>
+                    <p class="text-xs sm:text-sm text-slate-400">Simulador de cortes de gastos, metodologia 50-30-20 e metas para montar seu colchão de segurança.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs sm:text-sm">
+                <!-- Regra 50/30/20 -->
+                <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-5 space-y-3">
+                    <h3 class="font-bold text-white text-base flex items-center gap-2">
+                        <i class="fa-solid fa-bullseye text-emerald-400"></i> Metodologia 50 / 30 / 20
+                    </h3>
+                    <p class="text-slate-300 leading-relaxed">
+                        Divide sua renda no equilíbrio recomendado por grandes educadores financeiros mundiais:
+                    </p>
+                    <div class="space-y-2 pt-1">
+                        <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-700/60">
+                            <strong class="text-sky-400">50% Necessidades Básicas:</strong> Moradia, energia, alimentação, água e saúde essencial.
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-700/60">
+                            <strong class="text-amber-400">30% Estilo de Vida:</strong> Lazer, assinaturas, compras e conveniências pessoais.
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-700/60">
+                            <strong class="text-emerald-400">20% Poupança &amp; Investimentos:</strong> Reserva de emergência e quitação acelerada de dívidas.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulador e Reserva -->
+                <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-5 space-y-3">
+                    <h3 class="font-bold text-white text-base flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-amber-400"></i> Simulador &amp; Reserva de Emergência
+                    </h3>
+                    <p class="text-slate-300 leading-relaxed">
+                        • <strong>Simulador Interativo:</strong> Marque as opções de corte de 15% nos cartões ou 10% nos custos fixos e veja na hora o cálculo de quanto mais você poupará por ano.
+                    </p>
+                    <p class="text-slate-300 leading-relaxed">
+                        • <strong>Metas da Reserva:</strong> O sistema calcula seu custo de vida mensal e diz quanto você precisa ter guardado para garantir estabilidade:
+                        <br>— <strong>Meta 3 Meses:</strong> Segurança mínima para imprevistos imediatos.
+                        <br>— <strong>Meta 6 Meses:</strong> Colchão confortável para profissionais CLT.
+                        <br>— <strong>Meta 12 Meses:</strong> Segurança plena para autônomos e devs PJ.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================== MENU 5: BACKUPS, EXPORTAÇÃO E IMPORTAÇÃO ==================== -->
+        <section id="menu-backup" class="scroll-mt-28 space-y-6">
+            <div class="flex items-center gap-3 border-b border-slate-700/80 pb-3">
+                <div class="w-9 h-9 rounded-xl bg-sky-500/20 border border-sky-500/40 text-sky-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-file-arrow-up"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-white">5. Recursos: Exportação, Importação &amp; Backups</h2>
+                    <p class="text-xs sm:text-sm text-slate-400">Segurança total sem banco de dados remoto: seus dados ficam salvos no seu computador.</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-5 space-y-4 text-xs sm:text-sm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 rounded-xl bg-slate-900/80 border border-emerald-500/40 space-y-2">
+                        <h4 class="font-bold text-emerald-400 flex items-center gap-2">
+                            <i class="fa-solid fa-file-excel"></i> Exportação em Excel (.xlsx) e CSV
+                        </h4>
+                        <ul class="space-y-1.5 text-slate-300 list-disc list-inside">
+                            <li><strong>Excel com Abas Separadas:</strong> Gera um arquivo <code>.xlsx</code> com abas independentes: "Despesas", "Receitas" e "Resumo_Fluxo".</li>
+                            <li><strong>CSVs Separados:</strong> Exporta um arquivo para Contas e outro para Receitas, compatíveis com qualquer planilha.</li>
+                            <li><strong>Backup Completo (.json):</strong> Salva todas as informações da aplicação em um único arquivo de segurança máxima.</li>
+                        </ul>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-900/80 border border-brand-500/40 space-y-2">
+                        <h4 class="font-bold text-brand-300 flex items-center gap-2">
+                            <i class="fa-solid fa-file-import"></i> Importação Universal Inteligente
+                        </h4>
+                        <ul class="space-y-1.5 text-slate-300 list-disc list-inside">
+                            <li><strong>Upload Múltiplo:</strong> Permite selecionar vários arquivos de uma vez.</li>
+                            <li><strong>Sem Misturar Dados:</strong> O algoritmo de importação reconhece receitas e despesas separadamente, sem jogar receitas na tabela de contas.</li>
+                            <li><strong>Persistência no Navegador:</strong> Todos os dados ficam armazenados no <code>localStorage</code> do seu navegador, sem expor suas finanças a servidores terceiros na internet.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- RODAPÉ -->
+    <footer class="border-t border-slate-800 bg-slate-950/80 py-6 text-center text-xs text-slate-400 no-print">
+        <div class="max-w-4xl mx-auto px-4 space-y-2">
+            <div class="flex items-center justify-center gap-2">
+                <img src="logo_wellington.svg" alt="Logo" class="w-6 h-6 object-contain">
+                <span class="font-bold text-slate-200">Sistema de Gestão Financeira Pessoal</span>
+            </div>
+            <p>Projeto concebido e desenvolvido por <strong class="text-white">Wellington Felix Martins</strong> • Java Software Developer</p>
+            <p class="text-slate-500 text-[11px]">© 2026 • Documentação técnica e operacional do usuário.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

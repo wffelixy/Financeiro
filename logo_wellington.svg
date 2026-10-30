@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <linearGradient id="wfmBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="50%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="wfmBrandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#2dd4bf"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+    <linearGradient id="wfmJavaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#ef4444"/>
+    </linearGradient>
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#10b981" stop-opacity="0.8"/>
+    </linearGradient>
+    <filter id="wfmGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2.5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Container Squircle com fundo escuro tecnológico -->
+  <rect x="3" y="3" width="94" height="94" rx="22" fill="url(#wfmBgGrad)" stroke="url(#borderGrad)" stroke-width="2.5" />
+
+  <!-- Circuito sutil de fundo (Tecnologia / Dados) -->
+  <circle cx="50" cy="50" r="39" fill="none" stroke="#38bdf8" stroke-width="1" stroke-dasharray="3,5" opacity="0.3"/>
+
+  <!-- Left Bracket < (Código / Tech) -->
+  <path d="M 27 37 L 17 51 L 27 65" fill="none" stroke="#38bdf8" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+
+  <!-- Right Bracket > (Código / Tech) -->
+  <path d="M 73 37 L 83 51 L 73 65" fill="none" stroke="#10b981" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+
+  <!-- Monograma W (Wellington) estilizado com traço de crescimento financeiro -->
+  <path d="M 32 39 L 41 67 L 50 49 L 59 67 L 68 39" 
+        fill="none" 
+        stroke="url(#wfmBrandGrad)" 
+        stroke-width="5.5" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"
+        filter="url(#wfmGlow)"/>
+
+  <!-- Vapor / Chama característica do Café Java no topo -->
+  <path d="M 46 30 C 44 26, 52 24, 50 19 C 49 17, 47 16, 48 14" 
+        fill="none" 
+        stroke="url(#wfmJavaGrad)" 
+        stroke-width="2.8" 
+        stroke-linecap="round"/>
+  <path d="M 53 31 C 51 27, 57 25, 55 21" 
+        fill="none" 
+        stroke="url(#wfmJavaGrad)" 
+        stroke-width="2.2" 
+        stroke-linecap="round" 
+        opacity="0.8"/>
+</svg>
