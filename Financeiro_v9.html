@@ -141,7 +141,24 @@
             #content-table .table-scroll th,
             #content-table .table-scroll td { padding: .55rem .45rem; }
         }
-    </style>
+    
+/* WM Assistente - suporte local sem API */
+#wmChatLauncher{position:fixed;right:22px;bottom:22px;z-index:10050;width:58px;height:58px;border:0;border-radius:50%;background:linear-gradient(135deg,#0284c7,#059669);color:#fff;box-shadow:0 10px 30px #0008;font-size:22px;cursor:pointer}
+#wmChatPanel{position:fixed;right:22px;bottom:92px;z-index:10050;width:min(390px,calc(100vw - 24px));height:min(560px,calc(100dvh - 120px));display:none;flex-direction:column;background:#0f172a;border:1px solid #334155;border-radius:16px;box-shadow:0 18px 55px #0009;overflow:hidden;color:#e2e8f0}
+#wmChatPanel.open{display:flex}
+.wm-chat-head{padding:14px 16px;background:linear-gradient(120deg,#082f49,#064e3b);display:flex;align-items:center;justify-content:space-between}
+.wm-chat-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.wm-chat-msg{max-width:92%;padding:10px 12px;border-radius:12px;font-size:13px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
+.wm-chat-msg.bot{align-self:flex-start;background:#1e293b;border:1px solid #334155}
+.wm-chat-msg.user{align-self:flex-end;background:#075985;color:white}
+.wm-chat-input{display:flex;gap:8px;padding:12px;border-top:1px solid #334155;background:#111c2e}
+.wm-chat-input input{min-width:0;flex:1;background:#1e293b;border:1px solid #475569;border-radius:9px;padding:10px;color:#fff;font-size:13px;outline:none}
+.wm-chat-input button{background:#0284c7;color:white;border-radius:9px;padding:0 14px;font-weight:700}
+.wm-chat-suggestions{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 10px;background:#111c2e}
+.wm-chat-suggestions button{font-size:11px;color:#bae6fd;border:1px solid #0369a1;border-radius:20px;padding:5px 9px}
+@media(max-width:520px){#wmChatLauncher{right:14px;bottom:14px}#wmChatPanel{right:12px;bottom:82px;width:calc(100vw - 24px);height:min(70dvh,560px)}}
+
+</style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-full flex flex-col antialiased">
 
@@ -482,18 +499,18 @@
                         <thead>
                             <tr class="bg-slate-900/90 text-slate-300 font-semibold border-b border-slate-700">
                                 <th class="p-3 sticky left-0 bg-slate-900 z-10 w-52 min-w-[200px] border-r border-slate-700">Conta / Categoria</th>
-                                <th class="p-3 text-right min-w-[105px]">Jan</th>
-                                <th class="p-3 text-right min-w-[105px]">Fev</th>
-                                <th class="p-3 text-right min-w-[105px]">Mar</th>
-                                <th class="p-3 text-right min-w-[105px]">Abr</th>
-                                <th class="p-3 text-right min-w-[105px]">Mai</th>
-                                <th class="p-3 text-right min-w-[105px]">Jun</th>
-                                <th class="p-3 text-right min-w-[105px]">Jul</th>
-                                <th class="p-3 text-right min-w-[105px]">Ago</th>
-                                <th class="p-3 text-right min-w-[105px]">Set</th>
-                                <th class="p-3 text-right min-w-[105px]">Out</th>
-                                <th class="p-3 text-right min-w-[105px]">Nov</th>
-                                <th class="p-3 text-right min-w-[105px]">Dez</th>
+                                <th id="thMonthCol-0" class="p-3 text-right min-w-[105px]">Jan</th>
+                                <th id="thMonthCol-1" class="p-3 text-right min-w-[105px]">Fev</th>
+                                <th id="thMonthCol-2" class="p-3 text-right min-w-[105px]">Mar</th>
+                                <th id="thMonthCol-3" class="p-3 text-right min-w-[105px]">Abr</th>
+                                <th id="thMonthCol-4" class="p-3 text-right min-w-[105px]">Mai</th>
+                                <th id="thMonthCol-5" class="p-3 text-right min-w-[105px]">Jun</th>
+                                <th id="thMonthCol-6" class="p-3 text-right min-w-[105px]">Jul</th>
+                                <th id="thMonthCol-7" class="p-3 text-right min-w-[105px]">Ago</th>
+                                <th id="thMonthCol-8" class="p-3 text-right min-w-[105px]">Set</th>
+                                <th id="thMonthCol-9" class="p-3 text-right min-w-[105px]">Out</th>
+                                <th id="thMonthCol-10" class="p-3 text-right min-w-[105px]">Nov</th>
+                                <th id="thMonthCol-11" class="p-3 text-right min-w-[105px]">Dez</th>
                                 <th class="p-3 text-right min-w-[125px] bg-slate-950 text-brand-300 font-bold border-l border-slate-700">Total Anual</th>
                                 <th class="p-3 text-center min-w-[50px]">Ações</th>
                             </tr>
@@ -1055,6 +1072,16 @@
         </div>
     </div>
 
+
+<!-- WM Assistente: chatbot local, sem chamadas externas -->
+<button id="wmChatLauncher" type="button" onclick="wmToggleChat()" aria-label="Abrir WM Assistente" title="WM Assistente"><i class="fa-solid fa-comments"></i></button>
+<section id="wmChatPanel" aria-label="WM Assistente" aria-live="polite">
+  <header class="wm-chat-head"><div><div class="font-bold text-sm"><i class="fa-solid fa-robot mr-2"></i>WM Assistente</div><div class="text-[10px] text-emerald-200">Suporte local • seus dados não saem do navegador</div></div><button type="button" onclick="wmToggleChat(false)" class="text-white text-xl px-2" aria-label="Fechar">&times;</button></header>
+  <div id="wmChatMessages" class="wm-chat-messages"><div class="wm-chat-msg bot">Olá! Sou o WM Assistente. Posso explicar como usar o sistema e analisar seus lançamentos cadastrados.\n\nExperimente perguntar: “Quanto gastei este mês?” ou “Quais contas estão vencidas?”</div></div>
+  <div class="wm-chat-suggestions"><button type="button" onclick="wmAskSuggestion('Resumo financeiro deste mês')">Resumo do mês</button><button type="button" onclick="wmAskSuggestion('Quais contas estão vencidas?')">Contas vencidas</button><button type="button" onclick="wmAskSuggestion('Quais são meus maiores gastos?')">Maiores gastos</button></div>
+  <form class="wm-chat-input" onsubmit="wmSubmitChat(event)"><input id="wmChatInput" type="text" maxlength="400" autocomplete="off" placeholder="Digite sua pergunta..." aria-label="Sua pergunta"><button type="submit" aria-label="Enviar"><i class="fa-solid fa-paper-plane"></i></button></form>
+</section>
+
     <!-- JAVASCRIPT -->
     <script>
         var monthsShort = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
@@ -1078,7 +1105,21 @@
         let chartMultiYearObj = null;
 
         window.onload = function() {
+            var now = new Date();
+            var nowYear = now.getFullYear();
+            var nowMonth = now.getMonth();
+
             loadDatabase();
+
+            if (financialData[nowYear]) {
+                currentYear = nowYear;
+            }
+
+            var monthFilter = document.getElementById('dashboardMonthFilter');
+            if (monthFilter) {
+                monthFilter.value = String(nowMonth);
+            }
+
             populateYearSelect();
             renderAll();
         };
@@ -1264,7 +1305,26 @@
             });
             if (tabId === 'dashboard') {
                 renderCharts();
+            } else if (tabId === 'table') {
+                scrollToCurrentMonthTable();
             }
+        }
+
+        function scrollToCurrentMonthTable() {
+            try {
+                var now = new Date();
+                var curMonth = now.getMonth();
+                var th = document.getElementById('thMonthCol-' + curMonth);
+                var scrollContainer = document.querySelector('#content-table .table-scroll');
+                if (th && scrollContainer) {
+                    setTimeout(function() {
+                        var offsetLeft = th.offsetLeft - 220;
+                        if (offsetLeft > 0) {
+                            scrollContainer.scrollTo({ left: offsetLeft, behavior: 'smooth' });
+                        }
+                    }, 60);
+                }
+            } catch(e) {}
         }
 
         function openExportModal() {
@@ -2608,6 +2668,385 @@
                 event.target.value = '';
             }
         }
+
+
+        // ================= WM ASSISTENTE (100% local / sem API) =================
+        var wmChatContext = {
+            lastYear: null,
+            lastMonth: null,
+            lastIntent: null,
+            lastAccountQuery: null
+        };
+
+        function wmToggleChat(force) {
+            var panel = document.getElementById('wmChatPanel');
+            if (!panel) return;
+            var open = typeof force === 'boolean' ? force : !panel.classList.contains('open');
+            panel.classList.toggle('open', open);
+            if (open) setTimeout(function(){ var input=document.getElementById('wmChatInput'); if(input) input.focus(); }, 50);
+        }
+        function wmAddMessage(text, who) {
+            var box=document.getElementById('wmChatMessages'); if(!box) return;
+            var el=document.createElement('div'); el.className='wm-chat-msg '+(who==='user'?'user':'bot');
+            el.textContent=text; box.appendChild(el); box.scrollTop=box.scrollHeight;
+        }
+        function wmSubmitChat(event) {
+            if(event) event.preventDefault();
+            var input=document.getElementById('wmChatInput'); if(!input) return;
+            var question=input.value.trim(); if(!question) return;
+            input.value=''; wmAddMessage(question,'user');
+            wmAddMessage(wmAnswer(question),'bot');
+        }
+        function wmAskSuggestion(question) {
+            wmAddMessage(question,'user'); wmAddMessage(wmAnswer(question),'bot');
+        }
+        function wmNormalize(text) {
+            return String(text||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+        }
+
+        function wmEditDistance(a, b) {
+            var row = [];
+            for (var j = 0; j <= b.length; j++) row[j] = j;
+            for (var i = 1; i <= a.length; i++) {
+                var prev = row[0];
+                row[0] = i;
+                for (var j = 1; j <= b.length; j++) {
+                    var old = row[j];
+                    row[j] = Math.min(row[j] + 1, row[j-1] + 1, prev + (a.charAt(i-1) === b.charAt(j-1) ? 0 : 1));
+                    prev = old;
+                }
+            }
+            return row[b.length];
+        }
+
+        function wmDetectMonth(q) {
+            var numeric = q.match(/\b(0?[1-9]|1[0-2])\s*[\/-]\s*(20\d{2})\b/);
+            if (numeric) return parseInt(numeric[1], 10) - 1;
+            var names = [
+                ['janeiro','janero','jan'],
+                ['fevereiro','fev'],
+                ['marco','mar'],
+                ['abril','abr'],
+                ['maio','mai'],
+                ['junho','jun'],
+                ['julho','jul'],
+                ['agosto','ago'],
+                ['setembro','set'],
+                ['outubro','out'],
+                ['novembro','novenbro','novebro','nov'],
+                ['dezembro','dez']
+            ];
+            for (var i = 0; i < names.length; i++) {
+                for (var j = 0; j < names[i].length; j++) {
+                    var pattern = new RegExp('\\b' + names[i][j] + '\\b');
+                    if (pattern.test(q)) return i;
+                }
+            }
+            return null;
+        }
+
+        function wmDetectYear(q) {
+            var match = q.match(/\b(20\d{2})\b/);
+            return match ? parseInt(match[1], 10) : null;
+        }
+
+        function wmGetCurrentSystemMonth() {
+            var filter = document.getElementById('dashboardMonthFilter');
+            if (filter && filter.value !== undefined && filter.value !== '') {
+                return parseInt(filter.value, 10);
+            }
+            return new Date().getMonth();
+        }
+
+        function wmGetMonthData(year, month) {
+            var data = financialData[year] || { expenses: [], revenueSources: [] };
+            var revenue = 0, expense = 0, paid = 0, unpaid = 0, revenues = [];
+            (data.revenueSources || []).forEach(function(src) {
+                var v = Number((src.values || [])[month]) || 0;
+                revenue += v;
+                if (v > 0) revenues.push({ name: src.name || 'Receita', value: v, type: src.type || 'Variável' });
+            });
+            var expenses = [];
+            (data.expenses || []).forEach(function(exp) {
+                var v = Number((exp.values || [])[month]) || 0;
+                if (v <= 0) return;
+                var isPaid = Array.isArray(exp.paidMonths) && exp.paidMonths[month] === true;
+                expense += v;
+                if (isPaid) paid += v; else unpaid += v;
+                expenses.push({
+                    name: exp.name || 'Conta',
+                    category: exp.category || 'Outros',
+                    value: v,
+                    paid: isPaid,
+                    due: getExpenseDueDay(exp)
+                });
+            });
+            return {
+                revenue: revenue,
+                expense: expense,
+                paid: paid,
+                unpaid: unpaid,
+                balance: revenue - expense,
+                expenses: expenses,
+                revenues: revenues
+            };
+        }
+
+        function wmAnswer(question) {
+            var q = wmNormalize(question);
+            var original = String(question || '').trim();
+            if (!q) return 'Pode escrever sua pergunta que vou tentar ajudar.';
+
+            // Saudações
+            if (/^(oi|ola|bom dia|boa tarde|boa noite|tudo bem|e ai)$/.test(q)) {
+                return 'Olá! Sou o WM Assistente. Você pode escrever sua pergunta livremente com suas próprias palavras. Consulto diretamente os lançamentos e cálculos do sistema sem enviar dados para a internet. Exemplos:\n• "qual o total das despesas de novembro?"\n• "qual o valor do Santander em novembro?"\n• "quais contas estão vencidas?"\n• "quanto gasto com empréstimos?"';
+            }
+            if (/obrigad|valeu|era isso|entendi/.test(q)) {
+                return 'Por nada! Fico à disposição para qualquer outra dúvida ou consulta sobre suas finanças.';
+            }
+
+            var detectedM = wmDetectMonth(q);
+            var detectedY = wmDetectYear(q);
+
+            // Contexto de questionamento / continuação ("tem mais que isso", "e tem mais?", "certeza?", etc.)
+            var isContinuationQuestion = /^(tem mais|tem mais que isso|e so isso|so isso|so tem isso|mais alguma coisa|tem certeza|revisa|confere|e em|e no|e na)\b/.test(q) ||
+                /^(mais|mais nada|tem algo mais)$/.test(q);
+
+            var month;
+            var year;
+
+            if (detectedM !== null) {
+                month = detectedM;
+            } else if (isContinuationQuestion && wmChatContext.lastMonth !== null) {
+                month = wmChatContext.lastMonth;
+            } else {
+                month = wmGetCurrentSystemMonth();
+            }
+
+            if (detectedY !== null) {
+                year = detectedY;
+            } else if (isContinuationQuestion && wmChatContext.lastYear !== null) {
+                year = wmChatContext.lastYear;
+            } else {
+                year = currentYear || new Date().getFullYear();
+            }
+
+            // Atualiza contexto de mês e ano
+            wmChatContext.lastMonth = month;
+            wmChatContext.lastYear = year;
+
+            var months = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+            var label = months[month] + '/' + year;
+            var hasYearData = !!financialData[year];
+
+            // Dúvidas de uso / manual do sistema
+            var asksHow = /^(como|onde|aonde|consigo|faco|cadastrar|adicionar|alterar|editar|excluir|apagar|marcar|registrar|baixar|dar baixa|funciona|usar|utilizar|importar|exportar|backup|restaurar|manual|ajuda|ensina|tutorial)\b/.test(q);
+            if (asksHow) {
+                if (/pagar|pagamento|baixa|quit|marcar como pago/.test(q))
+                    return 'Para registrar que uma conta foi paga, acesse a Matriz Mensal e clique no botão circular da célula correspondente ao mês. O WM Assistente opera em modo somente leitura e não altera pagamentos.';
+                if (/receita|salario|renda|entrada/.test(q))
+                    return 'As receitas são gerenciadas clicando em "Receitas Fixas/Variáveis" na Matriz Mensal. O assistente soma todas as fontes cadastradas para o cálculo da renda.';
+                if (/despesa|conta|emprestimo|divida|parcela|financiamento/.test(q))
+                    return 'As despesas são cadastradas na Matriz Mensal através do botão "Adicionar Nova Conta". Nela você define nome, categoria e dia de vencimento.';
+                if (/excel|csv|export|backup|import|restaur/.test(q))
+                    return 'O sistema possui backup completo em JSON e exportação em Excel/CSV no menu superior. Sempre faça um backup antes de importar arquivos.';
+                if (/reserva|planej|orcamento|orçamento|meta/.test(q))
+                    return 'Acesse a aba "Plano & Reserva de Emergência" no topo para simular metas de reserva e prazos.';
+                return 'Consigo orientar sobre cadastro e edição de receitas/despesas, baixa de contas, Matriz Mensal, relatórios, backup e importação. O que você gostaria de saber?';
+            }
+
+            if (!hasYearData) {
+                return 'Não encontrei dados cadastrados para o ano de ' + year + '. O sistema está atualmente no ano ' + currentYear + '.';
+            }
+
+            var d = wmGetMonthData(year, month);
+            var today = new Date();
+            var overdue = [], upcoming = [];
+            d.expenses.forEach(function(e) {
+                if (e.paid) return;
+                var due = new Date(year, month, e.due);
+                due.setHours(0,0,0,0);
+                var now = new Date(); now.setHours(0,0,0,0);
+                if (due < now) overdue.push(e); else upcoming.push(e);
+            });
+
+            // Se o usuário está questionando a resposta anterior ("tem mais que isso", "e tem mais?")
+            if (isContinuationQuestion && wmChatContext.lastIntent) {
+                if (wmChatContext.lastIntent === 'expenses_total') {
+                    var totalDesp = d.expense;
+                    var linhas = d.expenses.map(function(e) {
+                        return '• ' + e.name + ' — ' + formatBRL(e.value) + (e.paid ? ' (pago)' : ' (pendente)');
+                    }).join('\n');
+                    return 'Revisando todos os lançamentos de ' + label + ':\n\n' +
+                        linhas +
+                        '\n\nTotal de ' + d.expenses.length + ' despesas somando ' + formatBRL(totalDesp) + ' (' + formatBRL(d.paid) + ' pagas e ' + formatBRL(d.unpaid) + ' pendentes).\nNão há outros lançamentos cadastrados nesta base para ' + label + '.';
+                } else if (wmChatContext.lastIntent === 'specific_account' && wmChatContext.lastAccountQuery) {
+                    var accQuery = wmChatContext.lastAccountQuery;
+                    var accMatches = d.expenses.filter(function(exp) {
+                        var n = wmNormalize(exp.name);
+                        return n.indexOf(accQuery) >= 0 || wmEditDistance(n, accQuery) <= 2;
+                    });
+                    if (accMatches.length) {
+                        var totAcc = accMatches.reduce(function(acc, x){ return acc + x.value; }, 0);
+                        return 'Para ' + wmChatContext.lastAccountQuery.toUpperCase() + ' em ' + label + ' constam:\n' +
+                            accMatches.map(function(e){ return '• ' + e.name + ' — ' + formatBRL(e.value) + (e.paid ? ' (pago)' : ' (pendente)'); }).join('\n') +
+                            '\nTotal: ' + formatBRL(totAcc) + '.';
+                    }
+                }
+            }
+
+            // Trata continuação de conta específica ("e em dezembro?", "e no próximo mês?")
+            var isSwitchMonthOnly = /^(e em|e no|e na|e para|e pra)\s+([a-z]+|[0-9\/-]+)/.test(q);
+            if (isSwitchMonthOnly && wmChatContext.lastAccountQuery) {
+                var accQuery = wmChatContext.lastAccountQuery;
+                var accMatches = d.expenses.filter(function(exp) {
+                    var n = wmNormalize(exp.name);
+                    return n.indexOf(accQuery) >= 0 || wmEditDistance(n, accQuery) <= 2;
+                });
+                if (accMatches.length) {
+                    var totAcc = accMatches.reduce(function(acc, x){ return acc + x.value; }, 0);
+                    return 'Lançamentos de ' + accMatches[0].name + ' em ' + label + ':\n' +
+                        accMatches.map(function(e){ return '• ' + e.name + ' — ' + formatBRL(e.value) + (e.paid ? ' (pago)' : ' (pendente)'); }).join('\n') +
+                        '\nTotal: ' + formatBRL(totAcc) + '.';
+                } else {
+                    return 'Não encontrei nenhum lançamento para "' + accQuery + '" em ' + label + '.';
+                }
+            }
+
+            // 1. INTENÇÃO: TOTAL DE DESPESAS GERAIS
+            var isTotalExpensesIntent = /total das despesas|total de despesas|total dos gastos|total gasto|soma das despesas|despesas do mes|valor total das contas|quanto gastei|quanto vou gastar|quanto vou pagar|quanto tenho de contas|quanto deu de despesa|qual o total das despesas/.test(q) ||
+                (/^quanto (gastei|gasto|vou pagar|tenho de contas)/.test(q) && !/emprest|consignad|financi|divida/.test(q) && !/santander|bradesco|itau|nubank|caixa/.test(q));
+
+            if (isTotalExpensesIntent) {
+                wmChatContext.lastIntent = 'expenses_total';
+                wmChatContext.lastAccountQuery = null;
+                return 'Em ' + label + ' você possui:\n\n' +
+                    '• Total de despesas: ' + formatBRL(d.expense) + '\n' +
+                    '• Já pagas: ' + formatBRL(d.paid) + '\n' +
+                    '• Ainda pendentes: ' + formatBRL(d.unpaid) + '\n' +
+                    '• Quantidade de contas: ' + d.expenses.length + '\n\n' +
+                    'Cálculo baseado na soma de todos os lançamentos da Matriz Mensal para ' + label + '.';
+            }
+
+            // 2. INTENÇÃO: PENDENTES / QUANTO AINDA FALTA PAGAR
+            if (/quanto (ainda )?(falta|resta) pagar|quanto tenho a pagar|despesas pendentes|contas pendentes|total pendente/.test(q)) {
+                wmChatContext.lastIntent = 'unpaid';
+                return 'Em ' + label + ' ainda resta pagar ' + formatBRL(d.unpaid) + ' (' + overdue.length + ' vencidas e ' + upcoming.length + ' a vencer).\nTotal já pago: ' + formatBRL(d.paid) + ' de ' + formatBRL(d.expense) + '.';
+            }
+
+            // 3. INTENÇÃO: JÁ PAGO
+            if (/quanto (ja|já) paguei|total pago|despesas pagas|contas pagas/.test(q)) {
+                wmChatContext.lastIntent = 'paid';
+                return 'Em ' + label + ' você já pagou ' + formatBRL(d.paid) + ' do total de ' + formatBRL(d.expense) + ' em despesas. Restam ' + formatBRL(d.unpaid) + ' pendentes.';
+            }
+
+            // 4. INTENÇÃO: CONTAS VENCIDAS / A VENCER
+            if (/vencid|atrasad/.test(q)) {
+                wmChatContext.lastIntent = 'overdue';
+                if (!overdue.length) return 'Parabéns! Nenhuma conta vencida encontrada em ' + label + '.';
+                var totOverdue = overdue.reduce(function(a,e){ return a + e.value; }, 0);
+                return 'Contas vencidas em ' + label + ' (' + overdue.length + '):\n\n' +
+                    overdue.map(function(e){ return '• ' + e.name + ' — ' + formatBRL(e.value) + ' (Vencimento: dia ' + e.due + ')'; }).join('\n') +
+                    '\n\nTotal vencido: ' + formatBRL(totOverdue) + '.';
+            }
+            if (/a vencer|proximas contas|próximas contas|contas abertas/.test(q)) {
+                wmChatContext.lastIntent = 'upcoming';
+                if (!upcoming.length) return 'Não há contas futuras a vencer cadastradas para ' + label + '.';
+                var totUpcoming = upcoming.reduce(function(a,e){ return a + e.value; }, 0);
+                return 'Próximas contas a vencer em ' + label + ' (' + upcoming.length + '):\n\n' +
+                    upcoming.map(function(e){ return '• ' + e.name + ' — ' + formatBRL(e.value) + ' (Vencimento: dia ' + e.due + ')'; }).join('\n') +
+                    '\n\nTotal a vencer: ' + formatBRL(totUpcoming) + '.';
+            }
+
+            // 5. INTENÇÃO: RECEITAS / ENTRADAS / SALÁRIO
+            if (/receit|salario|salário|renda|quanto recebo|quanto entra|entradas/.test(q)) {
+                wmChatContext.lastIntent = 'revenue';
+                return 'Receitas em ' + label + ':\n\n' +
+                    '• Total de receitas: ' + formatBRL(d.revenue) + '\n' +
+                    (d.revenues.length ? d.revenues.map(function(x){ return '  - ' + x.name + ': ' + formatBRL(x.value) + ' (' + x.type + ')'; }).join('\n') : '  (Nenhuma fonte lançada com valor)') +
+                    '\n\nSaldo projetado (Receitas - Despesas): ' + formatBRL(d.balance) + '.';
+            }
+
+            // 6. INTENÇÃO: EMPRÉSTIMOS / FINANCIAMENTOS / CONSIGNADOS
+            if (/emprest|consignad|financi|divida|dívida|parcelamento|parcelas/.test(q)) {
+                wmChatContext.lastIntent = 'loans';
+                var loans = d.expenses.filter(function(e) {
+                    var n = wmNormalize(e.name + ' ' + e.category);
+                    return /emprest|consignad|financi|mercado pago|divida/.test(n);
+                });
+                if (!loans.length) {
+                    return 'Não identifiquei despesas na categoria de Empréstimos ou com termos de financiamento em ' + label + '.';
+                }
+                var totLoans = loans.reduce(function(a,e){ return a + e.value; }, 0);
+                return 'Gastos com empréstimos e parcelamentos em ' + label + ':\n\n' +
+                    loans.map(function(e){ return '• ' + e.name + ' — ' + formatBRL(e.value) + (e.paid ? ' (pago)' : ' (pendente)'); }).join('\n') +
+                    '\n\nTotal mensal: ' + formatBRL(totLoans) + '.';
+            }
+
+            // 7. INTENÇÃO: MAIOR DESPESA / MAIORES GASTOS / IMPACTO / CATEGORIAS
+            if (/maior despesa|maiores despesa|maior gasto|maiores gasto|mais pes|onde gasto|categoria|impacto/.test(q)) {
+                wmChatContext.lastIntent = 'top_expenses';
+                var sorted = d.expenses.slice().sort(function(a,b){ return b.value - a.value; });
+                if (!sorted.length) return 'Não há despesas cadastradas para ' + label + '.';
+                var top = sorted.slice(0, 5);
+                return 'Maiores despesas de ' + label + ':\n\n' +
+                    top.map(function(e, i){ return (i+1) + '. ' + e.name + ' (' + e.category + ') — ' + formatBRL(e.value) + (e.paid ? ' [pago]' : ' [pendente]'); }).join('\n') +
+                    '\n\nA maior despesa individual é "' + top[0].name + '" no valor de ' + formatBRL(top[0].value) + '.';
+            }
+
+            // 8. INTENÇÃO: SALDO / SITUAÇÃO DO MÊS / ECONOMIZAR
+            if (/saldo|sobr|sobra|fechar|situacao|situac|resultado|deficit|superavit|economiz/.test(q)) {
+                wmChatContext.lastIntent = 'balance';
+                return 'Em ' + label + ' você possui:\n\n' +
+                    '• Receitas: ' + formatBRL(d.revenue) + '\n' +
+                    '• Despesas: ' + formatBRL(d.expense) + '\n' +
+                    '• Já Pagas: ' + formatBRL(d.paid) + '\n' +
+                    '• Pendentes: ' + formatBRL(d.unpaid) + '\n' +
+                    '• Saldo Previsto: ' + formatBRL(d.balance) + '\n\n' +
+                    (d.balance < 0 ? 'Atenção: déficit previsto de ' + formatBRL(Math.abs(d.balance)) + '. Para fechar o mês no azul, é necessário economizar ou cortar ao menos esse valor.' : 'Situação favorável: sobra projetada de ' + formatBRL(d.balance) + '.');
+            }
+
+            // 9. CONSULTA DE CONTA ESPECÍFICA (com tolerância a erros tipográficos como "Santanter" -> "Santander")
+            var stopWords = ['qual','quanto','valor','total','do','da','de','dos','das','para','pro','pra','esse','esta','este','mes','mês','no','na','em','o','a','um','uma','e','por','favor','desse','deste','tenho','meu','minha','devo','ao','a','com'];
+            var questionTerms = q.split(' ').filter(function(t) {
+                return t.length >= 3 && stopWords.indexOf(t) < 0 && !/^\d+$/.test(t) && !/^(novembro|dezembro|janeiro|fevereiro|marco|abril|maio|junho|julho|agosto|setembro|outubro)$/.test(t);
+            });
+
+            if (questionTerms.length > 0) {
+                var matches = [];
+                var matchedTerm = '';
+                for (var ti = 0; ti < questionTerms.length; ti++) {
+                    var term = questionTerms[ti];
+                    var currentMatches = d.expenses.filter(function(exp) {
+                        var expWords = wmNormalize(exp.name).split(' ');
+                        return expWords.some(function(w) {
+                            if (w.indexOf(term) >= 0 || term.indexOf(w) >= 0) return true;
+                            var maxDist = Math.max(w.length, term.length) >= 7 ? 2 : 1;
+                            return Math.abs(w.length - term.length) <= maxDist && wmEditDistance(w, term) <= maxDist;
+                        });
+                    });
+                    if (currentMatches.length > 0) {
+                        matches = currentMatches;
+                        matchedTerm = term;
+                        break;
+                    }
+                }
+
+                if (matches.length > 0) {
+                    wmChatContext.lastIntent = 'specific_account';
+                    wmChatContext.lastAccountQuery = matchedTerm;
+                    var totalMatch = matches.reduce(function(a,e){ return a + e.value; }, 0);
+                    return 'Lançamentos de ' + matches.map(function(m){ return m.name; }).join(', ') + ' em ' + label + ':\n\n' +
+                        matches.map(function(e){ return '• ' + e.name + ' (' + e.category + ') — ' + formatBRL(e.value) + (e.paid ? ' [pago]' : ' [pendente]') + ' — Venc. dia ' + e.due; }).join('\n') +
+                        (matches.length > 1 ? '\n\nTotal: ' + formatBRL(totalMatch) : '');
+                }
+            }
+
+            // Não compreendido claramente
+            return 'Entendi sua pergunta: "' + original + '", mas não identifiquei uma conta ou cálculo correspondente em ' + label + '.\n\nVocê pode tentar perguntar:\n• "qual o total das despesas de novembro?"\n• "qual o valor do Santander em novembro?"\n• "quais contas estão vencidas?"\n• "quanto gasto com empréstimos?"\n• "qual o saldo previsto deste mês?"';
+        }
+        // ================= FIM WM ASSISTENTE =================
+
     </script>
 </body>
 </html>
