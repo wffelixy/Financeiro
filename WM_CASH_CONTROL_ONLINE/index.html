@@ -1292,12 +1292,17 @@
                     updateAuthUI(currentUser);
                     if (event === 'SIGNED_IN' && currentUser) {
                         await loadFromSupabase();
+                        subscribeToRealtime();
                         checkLocalDataMigration();
                     } else if (event === 'SIGNED_OUT') {
                         loadDatabase();
                         renderAll();
                     }
                 });
+
+                if (currentUser) {
+                    subscribeToRealtime();
+                }
             } catch(e) {
                 console.error("Erro ao verificar sessão Supabase:", e);
                 updateAuthUI(null);
@@ -1458,12 +1463,12 @@
             if (!supabaseClient || !currentUser) return false;
             isSyncingWithCloud = true;
             try {
-                // 1. Carregar despesas do usuário
-                var resExp = await supabaseClient.from('expenses').select('*');
+                // 1. Carregar despesas do usuário ordenadas por ordem de cadastro (created_at crescente)
+                var resExp = await supabaseClient.from('expenses').select('*').order('created_at', { ascending: true });
                 if (resExp.error) throw resExp.error;
 
-                // 2. Carregar receitas do usuário
-                var resRev = await supabaseClient.from('revenue_sources').select('*');
+                // 2. Carregar receitas do usuário ordenadas por ordem de cadastro (created_at crescente)
+                var resRev = await supabaseClient.from('revenue_sources').select('*').order('created_at', { ascending: true });
                 if (resRev.error) throw resRev.error;
 
                 // 3. Carregar configurações
@@ -1609,6 +1614,34 @@
             }
             for (var j = 0; j < (dataYear.revenueSources || []).length; j++) {
                 await syncOnlineRevenue(dataYear.revenueSources[j], year);
+            }
+        }
+
+        // ================= SINCRONIZAÇÃO EM TEMPO REAL ENTRE DISPOSITIVOS (REALTIME) =================
+        var wmRealtimeChannel = null;
+        var wmLocalMutationTimestamp = 0;
+
+        function subscribeToRealtime() {
+            if (!supabaseClient || !currentUser || wmRealtimeChannel) return;
+
+            try {
+                wmRealtimeChannel = supabaseClient.channel('db-changes-' + currentUser.id)
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' }, async function(payload) {
+                        // Se a alteração acabou de ser feita nesta própria aba (menos de 2.5s), ignora para não repintar o que o usuário está digitando
+                        if (Date.now() - wmLocalMutationTimestamp < 2500) return;
+                        if (!isSyncingWithCloud) {
+                            await loadFromSupabase();
+                        }
+                    })
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'revenue_sources' }, async function(payload) {
+                        if (Date.now() - wmLocalMutationTimestamp < 2500) return;
+                        if (!isSyncingWithCloud) {
+                            await loadFromSupabase();
+                        }
+                    })
+                    .subscribe();
+            } catch(e) {
+                console.warn("Realtime não disponível ou desativado no Supabase:", e);
             }
         }
 
@@ -2167,6 +2200,7 @@
             }
 
             exp.paidMonths[monthIndex] = !exp.paidMonths[monthIndex];
+            wmLocalMutationTimestamp = Date.now();
             saveDatabase();
             if (currentUser && supabaseClient) {
                 syncOnlineExpense(exp, currentYear);
@@ -2520,6 +2554,7 @@
             var val = parseMoneyInput(value);
             var exp = financialData[currentYear].expenses[expIdx];
             exp.values[monthIdx] = val;
+            wmLocalMutationTimestamp = Date.now();
             saveDatabase();
             if (currentUser && supabaseClient) {
                 syncOnlineExpense(exp, currentYear);
