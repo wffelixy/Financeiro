@@ -10,10 +10,10 @@
 
 const SUPABASE_CONFIG = {
     // Exemplo: 'https://xyzcompany.supabase.co'
-    url: window.localStorage.getItem('https://vvcokjesucbdbjvgrjvy.supabase.co/') || '',
+    url: window.localStorage.getItem('wm_supabase_url') || 'https://vvcokjesucbdbjvgrjvy.supabase.co',
     
     // Exemplo: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-    anonKey: window.localStorage.getItem(sb_publishable_q4YqOygmAwIKinkuwCY0WQ_PN8_NIIP) || ''
+    anonKey: window.localStorage.getItem('wm_supabase_anon_key') || 'sb_publishable_q4YqOygmAwIKinkuwCY0WQ_PN8_NIIP'
 };
 
 // Instância do cliente Supabase
