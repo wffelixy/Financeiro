@@ -163,6 +163,107 @@
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-full flex flex-col antialiased">
 
+    <!-- ==================== TELA DE LOGIN (ANTES DO APP) ==================== -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-md space-y-6">
+            <!-- Logo e Título -->
+            <div class="text-center space-y-3">
+                <div class="w-20 h-20 mx-auto rounded-2xl overflow-hidden shadow-lg shadow-sky-500/20 bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-900 border border-slate-700/80 p-2 flex items-center justify-center">
+                    <svg viewBox="0 0 100 100" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="loginBrandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#38bdf8"/>
+                                <stop offset="50%" stop-color="#2dd4bf"/>
+                                <stop offset="100%" stop-color="#10b981"/>
+                            </linearGradient>
+                            <linearGradient id="loginJavaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#f59e0b"/>
+                                <stop offset="100%" stop-color="#ef4444"/>
+                            </linearGradient>
+                        </defs>
+                        <circle cx="50" cy="50" r="39" fill="none" stroke="#38bdf8" stroke-width="1" stroke-dasharray="3,5" opacity="0.3"/>
+                        <path d="M 27 37 L 17 51 L 27 65" fill="none" stroke="#38bdf8" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+                        <path d="M 73 37 L 83 51 L 73 65" fill="none" stroke="#10b981" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+                        <path d="M 32 39 L 41 67 L 50 49 L 59 67 L 68 39" fill="none" stroke="url(#loginBrandGrad)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M 46 30 C 44 26, 52 24, 50 19 C 49 17, 47 16, 48 14" fill="none" stroke="url(#loginJavaGrad)" stroke-width="2.8" stroke-linecap="round"/>
+                        <path d="M 53 31 C 51 27, 57 25, 55 21" fill="none" stroke="url(#loginJavaGrad)" stroke-width="2.2" stroke-linecap="round" opacity="0.8"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-white flex items-center justify-center gap-2">
+                        WM Cash Control
+                        <span class="text-[11px] font-semibold px-2 py-0.5 bg-slate-800 text-amber-400 border border-amber-500/40 rounded-full flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-brands fa-java text-amber-400 text-xs"></i> Java Dev
+                        </span>
+                    </h1>
+                    <p class="text-sm text-slate-400 mt-1">Sistema de Gestão Financeira &amp; Engenharia de Custos</p>
+                </div>
+            </div>
+
+            <!-- Card de Login -->
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl p-6 space-y-4">
+                <div class="flex items-center gap-2 border-b border-slate-700/80 pb-3">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm font-bold">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div>
+                        <h3 id="loginScreenTitle" class="text-base font-bold text-white">Acesse sua Conta</h3>
+                        <p class="text-xs text-slate-400">Faça login para acessar seus dados financeiros</p>
+                    </div>
+                </div>
+
+                <!-- Abas -->
+                <div class="flex border-b border-slate-700 text-xs font-semibold">
+                    <button type="button" id="loginTabLogin" onclick="switchLoginScreenTab('login')" class="flex-1 py-2 text-center text-sky-400 border-b-2 border-sky-400 font-bold">Entrar</button>
+                    <button type="button" id="loginTabSignup" onclick="switchLoginScreenTab('signup')" class="flex-1 py-2 text-center text-slate-400 hover:text-slate-200">Criar Conta</button>
+                    <button type="button" id="loginTabReset" onclick="switchLoginScreenTab('reset')" class="flex-1 py-2 text-center text-slate-400 hover:text-slate-200">Recuperar Senha</button>
+                </div>
+
+                <!-- Formulário -->
+                <form id="loginScreenForm" onsubmit="handleLoginScreenSubmit(event)" class="space-y-3 pt-1">
+                    <div>
+                        <label class="text-xs font-medium text-slate-300 block mb-1">E-mail</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-envelope absolute left-3 top-3 text-slate-500 text-xs"></i>
+                            <input type="email" id="loginScreenEmail" required placeholder="seu@email.com" class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-8 pr-3 py-2.5 text-white text-sm focus:outline-none focus:border-brand-500">
+                        </div>
+                    </div>
+
+                    <div id="loginScreenPasswordGroup">
+                        <label class="text-xs font-medium text-slate-300 block mb-1">Senha</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-lock absolute left-3 top-3 text-slate-500 text-xs"></i>
+                            <input type="password" id="loginScreenPassword" placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-8 pr-3 py-2.5 text-white text-sm focus:outline-none focus:border-brand-500">
+                        </div>
+                    </div>
+
+                    <div id="loginScreenFeedback" class="hidden text-xs p-2.5 rounded-lg border"></div>
+
+                    <button type="submit" id="loginScreenSubmitBtn" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm py-3 rounded-lg flex items-center justify-center gap-2 transition shadow-md">
+                        <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                        <span id="loginScreenSubmitText">Entrar</span>
+                    </button>
+                </form>
+
+                <!-- Botão de Configuração do Supabase -->
+                <div class="pt-2 border-t border-slate-700">
+                    <button onclick="openConfigModal()" class="w-full text-slate-400 hover:text-sky-400 text-xs flex items-center justify-center gap-1.5 py-2 rounded-lg hover:bg-slate-700/50 transition">
+                        <i class="fa-solid fa-gear"></i> Configurar Conexão Supabase
+                    </button>
+                </div>
+            </div>
+
+            <!-- Rodapé -->
+            <div class="text-center text-xs text-slate-500 space-y-1">
+                <p>Desenvolvido por <strong class="text-slate-300">Wellington Felix Martins</strong></p>
+                <p class="inline-flex items-center gap-1.5 text-amber-400/70 font-medium"><i class="fa-brands fa-java text-xs"></i> Java Software Developer</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== APLICAÇÃO PRINCIPAL (ESCONDIDA ATÉ LOGIN) ==================== -->
+    <div id="appContainer" class="hidden flex flex-col min-h-screen">
+
     <!-- CABEÇALHO DA APLICAÇÃO -->
     <header class="bg-slate-800/90 backdrop-blur border-b border-slate-700/80 sticky top-0 z-50">
         <div class="w-full mx-auto px-3 sm:px-5 lg:px-6 min-h-16 flex items-center justify-between">
@@ -266,6 +367,10 @@
                             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="Online no Supabase"></span>
                             <span id="userEmailDisplay" class="text-slate-300 font-medium max-w-[120px] sm:max-w-[180px] truncate" title="Usuário logado">...</span>
                         </div>
+                        <button id="btnMigrarDadosLocais" onclick="openMigrationModal()" class="hidden bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow-sm" title="Migrar dados locais salvos neste navegador para a nuvem">
+                            <i class="fa-solid fa-upload text-xs"></i>
+                            <span class="hidden sm:inline">Migrar Dados</span>
+                        </button>
                         <button onclick="openConfigModal()" class="text-slate-400 hover:text-sky-400 p-2 rounded-lg hover:bg-slate-800 transition" title="Configurações do Supabase">
                             <i class="fa-solid fa-gear text-xs"></i>
                         </button>
@@ -800,6 +905,8 @@
         </div>
     </footer>
 
+    </div> <!-- FIM DO appContainer -->
+
     <!-- MODAIS -->
     <div id="modalAccount" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-lg shadow-2xl p-6 space-y-4 modal-scroll">
@@ -1055,7 +1162,7 @@
             </p>
 
             <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-700">
-                <button type="button" onclick="closeModal('modalMigration')" class="px-3 py-2 bg-slate-700 rounded-lg text-slate-300 font-semibold text-xs">Agora Não</button>
+                <button type="button" onclick="dismissMigrationModal()" class="px-3 py-2 bg-slate-700 rounded-lg text-slate-300 font-semibold text-xs">Agora Não</button>
                 <button type="button" id="btnExecuteMigration" onclick="executeLocalToCloudMigration()" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-semibold text-xs flex items-center gap-1.5 shadow-md">
                     <i class="fa-solid fa-upload"></i> Migrar para Minha Conta Online
                 </button>
@@ -1246,30 +1353,94 @@
         let isSyncingWithCloud = false;
 
         window.onload = async function() {
-            var now = new Date();
-            var nowYear = now.getFullYear();
-            var nowMonth = now.getMonth();
-
-            loadDatabase();
-
-            if (financialData[nowYear]) {
-                currentYear = nowYear;
-            }
-
-            var monthFilter = document.getElementById('dashboardMonthFilter');
-            if (monthFilter) {
-                monthFilter.value = String(nowMonth);
-            }
-
-            populateYearSelect();
-            renderAll();
-
-            // Inicializar Supabase se as chaves existirem
+            // Inicializar Supabase e verificar sessão ANTES de carregar dados
             initSupabase();
             await checkAuthSession();
+
+            // Se não há usuário logado, não carregar nada - a tela de login já está visível
         };
 
         // ================= GESTÃO DE AUTENTICAÇÃO E SESSÃO =================
+
+        // ---- Tela de Login (login screen) ----
+        var loginScreenTab = 'login';
+
+        function switchLoginScreenTab(tab) {
+            loginScreenTab = tab;
+            var tabLogin = document.getElementById('loginTabLogin');
+            var tabSignup = document.getElementById('loginTabSignup');
+            var tabReset = document.getElementById('loginTabReset');
+            var pwdGroup = document.getElementById('loginScreenPasswordGroup');
+            var submitText = document.getElementById('loginScreenSubmitText');
+            var title = document.getElementById('loginScreenTitle');
+
+            [tabLogin, tabSignup, tabReset].forEach(function(el) {
+                if (el) el.className = 'flex-1 py-2 text-center text-slate-400 hover:text-slate-200';
+            });
+
+            if (tab === 'login') {
+                if (tabLogin) tabLogin.className = 'flex-1 py-2 text-center text-sky-400 border-b-2 border-sky-400 font-bold';
+                if (pwdGroup) pwdGroup.classList.remove('hidden');
+                if (submitText) submitText.textContent = 'Entrar';
+                if (title) title.textContent = 'Acesse sua Conta';
+            } else if (tab === 'signup') {
+                if (tabSignup) tabSignup.className = 'flex-1 py-2 text-center text-emerald-400 border-b-2 border-emerald-400 font-bold';
+                if (pwdGroup) pwdGroup.classList.remove('hidden');
+                if (submitText) submitText.textContent = 'Criar Minha Conta';
+                if (title) title.textContent = 'Criar Nova Conta';
+            } else if (tab === 'reset') {
+                if (tabReset) tabReset.className = 'flex-1 py-2 text-center text-amber-400 border-b-2 border-amber-400 font-bold';
+                if (pwdGroup) pwdGroup.classList.add('hidden');
+                if (submitText) submitText.textContent = 'Enviar E-mail de Recuperação';
+                if (title) title.textContent = 'Recuperar Senha';
+            }
+        }
+
+        async function handleLoginScreenSubmit(event) {
+            event.preventDefault();
+            if (!supabaseClient) {
+                alert("Supabase não configurado. Por favor, clique em 'Configurar Conexão Supabase' abaixo.");
+                return;
+            }
+
+            var email = document.getElementById('loginScreenEmail').value.trim();
+            var password = document.getElementById('loginScreenPassword').value;
+            var feedback = document.getElementById('loginScreenFeedback');
+            var submitBtn = document.getElementById('loginScreenSubmitBtn');
+
+            feedback.className = 'text-xs p-2.5 rounded-lg border hidden';
+            submitBtn.disabled = true;
+
+            try {
+                if (loginScreenTab === 'login') {
+                    var res = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
+                    if (res.error) throw res.error;
+                    // O onAuthStateChange vai tratar a mudança de UI
+                } else if (loginScreenTab === 'signup') {
+                    var resSignUp = await supabaseClient.auth.signUp({ email: email, password: password });
+                    if (resSignUp.error) throw resSignUp.error;
+                    feedback.className = 'text-xs p-2.5 rounded-lg border bg-emerald-950/40 text-emerald-300 border-emerald-500/40';
+                    feedback.textContent = "Conta criada com sucesso! Verifique seu e-mail para confirmar seu cadastro.";
+                    feedback.classList.remove('hidden');
+                    return;
+                } else if (loginScreenTab === 'reset') {
+                    var resReset = await supabaseClient.auth.resetPasswordForEmail(email);
+                    if (resReset.error) throw resReset.error;
+                    feedback.className = 'text-xs p-2.5 rounded-lg border bg-sky-950/40 text-sky-300 border-sky-500/40';
+                    feedback.textContent = "Instruções de redefinição de senha foram enviadas para seu e-mail.";
+                    feedback.classList.remove('hidden');
+                    return;
+                }
+            } catch(err) {
+                feedback.className = 'text-xs p-2.5 rounded-lg border bg-rose-950/40 text-rose-300 border-rose-500/40';
+                feedback.textContent = "Erro: " + (err.message || 'Falha na operação de autenticação.');
+                feedback.classList.remove('hidden');
+            } finally {
+                submitBtn.disabled = false;
+            }
+        }
+
+        // ---- Sessão e autenticação ----
         async function checkAuthSession() {
             if (!supabaseClient) {
                 updateAuthUI(null);
@@ -1283,6 +1454,7 @@
 
                 if (currentUser) {
                     await loadFromSupabase();
+                    initializeAppView();
                     checkLocalDataMigration();
                 }
 
@@ -1292,11 +1464,11 @@
                     updateAuthUI(currentUser);
                     if (event === 'SIGNED_IN' && currentUser) {
                         await loadFromSupabase();
+                        initializeAppView();
                         subscribeToRealtime();
                         checkLocalDataMigration();
                     } else if (event === 'SIGNED_OUT') {
-                        loadDatabase();
-                        renderAll();
+                        // Não carregar dados locais ao sair - a tela de login será exibida
                     }
                 });
 
@@ -1309,17 +1481,44 @@
             }
         }
 
+        // Inicializa a visualização do app (chamada após login bem-sucedido)
+        function initializeAppView() {
+            var now = new Date();
+            var nowYear = now.getFullYear();
+            var nowMonth = now.getMonth();
+
+            if (financialData[nowYear]) {
+                currentYear = nowYear;
+            }
+
+            var monthFilter = document.getElementById('dashboardMonthFilter');
+            if (monthFilter) {
+                monthFilter.value = String(nowMonth);
+            }
+
+            populateYearSelect();
+            renderAll();
+        }
+
         function updateAuthUI(user) {
             var profileBar = document.getElementById('userProfileBar');
             var loginBar = document.getElementById('userLoginBar');
             var emailDisplay = document.getElementById('userEmailDisplay');
+            var loginScreen = document.getElementById('loginScreen');
+            var appContainer = document.getElementById('appContainer');
 
             if (user) {
+                // Esconder tela de login, mostrar aplicação
+                if (loginScreen) loginScreen.classList.add('hidden');
+                if (appContainer) { appContainer.classList.remove('hidden'); }
                 if (profileBar) profileBar.classList.remove('hidden');
                 if (profileBar) profileBar.classList.add('flex');
                 if (loginBar) loginBar.classList.add('hidden');
                 if (emailDisplay) emailDisplay.textContent = user.email || 'Usuário Online';
             } else {
+                // Mostrar tela de login, esconder aplicação
+                if (loginScreen) loginScreen.classList.remove('hidden');
+                if (appContainer) appContainer.classList.add('hidden');
                 if (profileBar) profileBar.classList.add('hidden');
                 if (profileBar) profileBar.classList.remove('flex');
                 if (loginBar) loginBar.classList.remove('hidden');
@@ -1420,10 +1619,20 @@
                 await supabaseClient.auth.signOut();
             }
             currentUser = null;
+
+            // Limpar TODOS os dados financeiros da memória para segurança
+            financialData = {};
+            currentYear = new Date().getFullYear();
+
+            // Limpar elementos visuais (tabelas, gráficos, etc.)
+            var yearSelect = document.getElementById('yearSelect');
+            if (yearSelect) yearSelect.innerHTML = '';
+
+            // Destruir gráficos do Chart.js se existirem
+            if (typeof dashChart !== 'undefined' && dashChart) { try { dashChart.destroy(); dashChart = null; } catch(e){} }
+            if (typeof diagChart !== 'undefined' && diagChart) { try { diagChart.destroy(); diagChart = null; } catch(e){} }
+
             updateAuthUI(null);
-            loadDatabase();
-            renderAll();
-            alert("Você saiu da sua conta. O sistema retornou para o modo local.");
         }
 
         function openConfigModal() {
@@ -1646,10 +1855,15 @@
         }
 
         // ================= MIGRAÇÃO SEGURA: LOCALSTORAGE -> SUPABASE =================
+        // Verifica se existem dados locais e mostra/esconde o botão de migração na toolbar
         function checkLocalDataMigration() {
             if (!currentUser) return;
             var localSaved = localStorage.getItem('finguard_db_v5');
-            if (!localSaved) return;
+            var btnMigrar = document.getElementById('btnMigrarDadosLocais');
+            if (!localSaved) {
+                if (btnMigrar) btnMigrar.classList.add('hidden');
+                return;
+            }
 
             try {
                 var localData = JSON.parse(localSaved);
@@ -1666,20 +1880,81 @@
                 });
 
                 if (totalLocalExp > 0 || totalLocalRev > 0) {
-                    var statsEl = document.getElementById('migrationStats');
-                    if (statsEl) {
-                        statsEl.innerHTML = 
-                            '<p class="font-semibold text-slate-100 flex items-center gap-1.5"><i class="fa-solid fa-list-check text-purple-400"></i> Resumo dos Dados Encontrados no seu Computador:</p>' +
-                            '<ul class="space-y-1 list-disc list-inside text-slate-300 pt-1">' +
-                            '<li><strong>Anos detectados:</strong> ' + years.join(', ') + '</li>' +
-                            '<li><strong>Total de Contas/Despesas:</strong> ' + totalLocalExp + '</li>' +
-                            '<li><strong>Total de Fontes de Receita:</strong> ' + totalLocalRev + '</li>' +
-                            '</ul>';
+                    // Mostrar o botão "Migrar Dados" na toolbar
+                    if (btnMigrar) btnMigrar.classList.remove('hidden');
+
+                    // Só exibir o modal automaticamente na PRIMEIRA VEZ que o usuário loga
+                    // (uma vez por sessão E apenas se nunca foi descartado antes)
+                    var migrationDismissedKey = 'finguard_migration_dismissed_' + currentUser.id;
+                    var alreadyDismissed = localStorage.getItem(migrationDismissedKey);
+                    var alreadyShownThisSession = sessionStorage.getItem('finguard_migration_shown');
+
+                    if (!alreadyDismissed && !alreadyShownThisSession) {
+                        sessionStorage.setItem('finguard_migration_shown', 'true');
+                        populateMigrationStats(years, totalLocalExp, totalLocalRev);
+                        document.getElementById('modalMigration').classList.remove('hidden');
                     }
-                    document.getElementById('modalMigration').classList.remove('hidden');
+                } else {
+                    if (btnMigrar) btnMigrar.classList.add('hidden');
                 }
             } catch(e) {
                 console.error("Erro ao verificar migração local:", e);
+            }
+        }
+
+        // Popula as estatísticas no modal de migração
+        function populateMigrationStats(years, totalLocalExp, totalLocalRev) {
+            var statsEl = document.getElementById('migrationStats');
+            if (statsEl) {
+                statsEl.innerHTML = 
+                    '<p class="font-semibold text-slate-100 flex items-center gap-1.5"><i class="fa-solid fa-list-check text-purple-400"></i> Resumo dos Dados Encontrados no seu Computador:</p>' +
+                    '<ul class="space-y-1 list-disc list-inside text-slate-300 pt-1">' +
+                    '<li><strong>Anos detectados:</strong> ' + years.join(', ') + '</li>' +
+                    '<li><strong>Total de Contas/Despesas:</strong> ' + totalLocalExp + '</li>' +
+                    '<li><strong>Total de Fontes de Receita:</strong> ' + totalLocalRev + '</li>' +
+                    '</ul>';
+            }
+        }
+
+        // Abre o modal de migração manualmente (via botão na toolbar)
+        function openMigrationModal() {
+            if (!currentUser) return;
+            var localSaved = localStorage.getItem('finguard_db_v5');
+            if (!localSaved) {
+                alert('Não foram encontrados dados locais para migrar.');
+                return;
+            }
+            try {
+                var localData = JSON.parse(localSaved);
+                var totalLocalExp = 0;
+                var totalLocalRev = 0;
+                var years = Object.keys(localData);
+                years.forEach(function(y) {
+                    var yd = localData[y];
+                    if (yd) {
+                        totalLocalExp += (yd.expenses || []).length;
+                        totalLocalRev += (yd.revenueSources || []).length;
+                    }
+                });
+                if (totalLocalExp > 0 || totalLocalRev > 0) {
+                    populateMigrationStats(years, totalLocalExp, totalLocalRev);
+                    // Limpar mensagem de status anterior
+                    var statusMsg = document.getElementById('migrationStatusMessage');
+                    if (statusMsg) statusMsg.classList.add('hidden');
+                    document.getElementById('modalMigration').classList.remove('hidden');
+                } else {
+                    alert('Não foram encontrados dados locais para migrar.');
+                }
+            } catch(e) {
+                alert('Erro ao ler dados locais: ' + e.message);
+            }
+        }
+
+        // Fecha o modal e marca como descartado para não aparecer automaticamente de novo
+        function dismissMigrationModal() {
+            closeModal('modalMigration');
+            if (currentUser) {
+                localStorage.setItem('finguard_migration_dismissed_' + currentUser.id, 'true');
             }
         }
 
@@ -1783,8 +2058,14 @@
                     );
                     if (clearConfirm) {
                         localStorage.removeItem('finguard_db_v5');
+                        // Esconder o botão de migração e limpar flag
+                        var btnMigrar = document.getElementById('btnMigrarDadosLocais');
+                        if (btnMigrar) btnMigrar.classList.add('hidden');
+                        if (currentUser) localStorage.removeItem('finguard_migration_dismissed_' + currentUser.id);
                         alert("Armazenamento local limpo. Seus dados agora estão protegidos na nuvem.");
                     } else {
+                        // Marca como já migrado para não aparecer mais o modal automaticamente
+                        if (currentUser) localStorage.setItem('finguard_migration_dismissed_' + currentUser.id, 'true');
                         alert("Seus dados locais foram mantidos intactos no navegador.");
                     }
                 }, 1200);
